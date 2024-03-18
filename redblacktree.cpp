@@ -13,7 +13,6 @@ class RedBlackTree {
         Node* left;
         Node* right;
         Node* parent;
-        int height;
 
         Node* get_left() { return left; }
         Node* get_right() { return right; }
@@ -38,19 +37,19 @@ class RedBlackTree {
           return value > parent->value;
         }
 
-        int get_height() { return height; }
     } Node;
 
+    Node* root;
+
+  public:
+    RedBlackTree(): root(nullptr) {};
+    
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
       return root;
     }
 
-    Node* root;
-
-  public:
-    RedBlackTree(): root(nullptr) {};
     class Iterator {
       private:
         Node* n;
@@ -69,8 +68,43 @@ class RedBlackTree {
       return i; 
     }
 
-    void right_rotate(Node* node){}
-    void left_rotate(Node* node){}
+    void right_rotate(Node* node){
+      Node* aux = node->left;
+      node->left = aux->right;
+
+      if(aux->right != nullptr) 
+        aux->right->parent = node;
+      aux->parent = node->parent;
+
+      if(node->parent == nullptr) 
+        root = aux;
+      else if(node->is_right_child()) 
+        node->parent->right = aux;
+      else 
+        node->parent->left = aux;
+
+      aux->right = node;
+      node->parent = aux;
+    }
+
+    void left_rotate(Node* node){
+      Node* aux = node->right; // y
+      node->right = aux->left;
+
+      if(aux->left != nullptr) 
+        aux->left->parent = node;
+      aux->parent = node->parent;
+
+      if(node->parent == nullptr) 
+        root = aux;
+      else if(node->is_left_child()) 
+        node->parent->left = aux;
+      else
+        node->parent->right = aux;
+
+      aux->left = node;
+      node->parent = aux;
+    }
 
     void balance(Node* node) {
       if(node == nullptr) return;
@@ -89,17 +123,25 @@ class RedBlackTree {
       }
 
       if(node->parent->is_left_child() != -1 && node->parent->is_left_child()) {
-        if(node->is_left_child()) {
-          node->parent->color = BLACK;
-          node->get_grandparent()->color = RED;
-        } else {
+        if(node->is_right_child()) {
           left_rotate(node->parent);
           node = node->left;
-          node->parent->color = BLACK;
-          node->get_grandparent()->color = RED;
-        }
+        } 
+        node->parent->color = BLACK;
+        node->get_grandparent()->color = RED;
         return right_rotate(node->get_grandparent());
-      } 
+      }
+
+
+      if(node->parent->is_right_child() != -1 && node->parent->is_right_child())  {
+        if(node->is_left_child()) {
+          right_rotate(node->parent);
+          node = node->right;
+        }
+        node->parent->color = BLACK;
+        node->get_grandparent()->color = RED;
+        return left_rotate(node->get_grandparent());
+      }
 
       return balance(node->parent);
     }
@@ -110,7 +152,6 @@ class RedBlackTree {
 
         node->color = RED;
         node->value = value;
-        node->height = 1;
         node->left = nullptr;
         node->right = nullptr;
         node->parent = nullptr;
@@ -145,14 +186,37 @@ class RedBlackTree {
         Iterator i(node);
         return i;
     }
+
+    void print(Node* node) {
+      if(node == nullptr) return;
+
+      cout << "value: " << node->value << ' ';
+      if(node->left != nullptr)
+       cout << "left child: " << node->left->value << ' ';
+      else
+       cout << "left child: " << "null" << ' ';
+      if(node->right != nullptr)
+       cout << "right child: " << node->right->value << endl;
+      else
+       cout << "right child: " << "null" << endl;
+      
+      print(node->left);
+      print(node->right);
+    }
 };
 
 int main() {
   RedBlackTree rbtree; 
-  auto v1 = rbtree.insert(2);
-  auto v2 = rbtree.insert(20);
-  auto v3 = rbtree.insert(1);
-  auto v4 = rbtree.insert(10);
-
+  auto v1 = rbtree.insert(11);
+  auto v2 = rbtree.insert(2);
+  auto v3 = rbtree.insert(14);
+  auto v4 = rbtree.insert(7);
+  auto v5 = rbtree.insert(1);
+  auto v6 = rbtree.insert(15);
+  auto v7 = rbtree.insert(5);
+  auto v8 = rbtree.insert(8);
+  auto v9 = rbtree.insert(4);
+  
+  rbtree.print(rbtree.get_root());
   return 0;
 }
