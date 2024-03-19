@@ -164,10 +164,11 @@ class RedBlackTree {
       while(node->parent != nullptr && node->color == BLACK) {
         if(node->is_left_child()) {
           Node* right_child = node->parent->right;
-          if(node->color == RED) {
-            node->color = BLACK;
+          if(right_child->color == RED) {
+            right_child->color = BLACK;
             node->parent->color = RED;
             left_rotate(node->parent);
+            right_child = node->parent->right;
           }
           if(right_child->left->color == BLACK && right_child->right->color == BLACK) {
             right_child->color = RED;
@@ -189,10 +190,11 @@ class RedBlackTree {
           }
         } else {
           Node* left_child = node->parent->left;
-          if(node->color == RED) {
-            node->color = BLACK;
+          if(left_child->color == RED) {
+            left_child->color = BLACK;
             node->parent->color = RED;
             right_rotate(node->parent);
+            left_child = node->parent->left;
           }
           if(left_child->left->color == BLACK && left_child->right->color == BLACK) {
             left_child->color = RED;
