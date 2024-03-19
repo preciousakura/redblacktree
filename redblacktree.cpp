@@ -161,64 +161,60 @@ class RedBlackTree {
     }
 
     void remove_fix(Node* node) {
-      if(node->parent == nullptr) return;
-      if(node->is_left_child() && !node->is_null) {
-        Node* right_child = node->parent->right;
-        if(right_child->color == COLOR::RED) {
-          right_child->color = BLACK;
-          node->parent->color = RED;
-          left_rotate(node->parent);
-          right_child = node->parent->right;
-        } 
-        if(right_child->color == COLOR::BLACK && right_child->left->color == COLOR::BLACK && right_child->right->color == COLOR::BLACK) {
-          right_child->color = RED;
-          node = node->parent;
-          if(node->color == RED) node->color = BLACK;
-          else remove_fix(node);
-        }
-        if(right_child->color == COLOR::BLACK && right_child->right->color == COLOR::BLACK) {
-          right_child->left->color = BLACK;
-          right_child->color = RED;
-          right_rotate(right_child);
-          right_child = node->parent->right;
-        } 
-        if(right_child->color == COLOR::BLACK && right_child->right->color == COLOR::RED) {
-          right_child->color = right_child->parent->color;
-          right_child->parent->color = BLACK;
-          right_child->right->color = BLACK;
-          left_rotate(right_child->parent);
-          if(root->color == COLOR::RED)
-            root->color = COLOR::BLACK;
-        }
-      } else {
-        Node* left_child = node->parent->left;
-        if(left_child->color == COLOR::RED) {
-          left_child->color = BLACK;
-          node->parent->color = RED;
-          right_rotate(node->parent);
-          left_child = node->parent->left;
-        } 
-        if(left_child->color == COLOR::BLACK && left_child->left->color == COLOR::BLACK && left_child->right->color == COLOR::BLACK) {
-          left_child->color = RED;
-          node = node->parent;
-          if(node->color == RED) node->color = BLACK;
-          else remove_fix(node);
-        }
-        if(left_child->color == COLOR::BLACK && left_child->left->color == COLOR::BLACK) {
-          left_child->left->color = BLACK;
-          left_child->color = RED;
-          left_rotate(left_child);
-          left_child = node->parent->left;
-        } 
-        if(left_child->color == COLOR::BLACK && left_child->left->color == COLOR::RED) {
-          left_child->color = left_child->parent->color;
-          left_child->parent->color = BLACK;
-          left_child->left->color = BLACK;
-          right_rotate(left_child->parent);
-          if(root->color == COLOR::RED)
-            root->color = COLOR::BLACK;
+      while(node->parent != nullptr && node->color == BLACK) {
+        if(node->is_left_child()) {
+          Node* right_child = node->parent->right;
+          if(node->color == RED) {
+            node->color = BLACK;
+            node->parent->color = RED;
+            left_rotate(node->parent);
+          }
+          if(right_child->left->color == BLACK && right_child->right->color == BLACK) {
+            right_child->color = RED;
+            node = node->parent;
+          }
+          else {
+            if(right_child->right->color == BLACK) {
+              right_child->left->color = BLACK;
+              right_child->color = RED;
+              right_rotate(right_child);
+              right_child = node->parent->right;
+            }
+
+            right_child->color = node->parent->color;
+            node->parent->color = BLACK;
+            right_child->right->color = BLACK;
+            left_rotate(node->parent);
+            node = root;
+          }
+        } else {
+          Node* left_child = node->parent->left;
+          if(node->color == RED) {
+            node->color = BLACK;
+            node->parent->color = RED;
+            right_rotate(node->parent);
+          }
+          if(left_child->left->color == BLACK && left_child->right->color == BLACK) {
+            left_child->color = RED;
+            node = node->parent;
+          }
+          else {
+            if(left_child->left->color == BLACK) {
+              left_child->right->color = BLACK;
+              left_child->color = RED;
+              left_rotate(left_child);
+              left_child = node->parent->left;
+            }
+
+            left_child->color = node->parent->color;
+            node->parent->color = BLACK;
+            left_child->left->color = BLACK;
+            right_rotate(node->parent);
+            node = root;
+          }
         }
       }
+      node->color = BLACK;
     }
 
   public:
@@ -308,24 +304,25 @@ class RedBlackTree {
 
       if(d.node->left->is_null) {
         aux = d.node->right;
-        transplant(d.node, aux);
+        transplant(d.node, d.node->right);
       } else if(d.node->right->is_null) {
         aux = d.node->left;
-        transplant(d.node, aux);
+        transplant(d.node, d.node->left);
       } else {
-        node = d.successor(d.node); // y
-        aux = node->right;         
+        node = d.successor(d.node); 
         original_color = node->color;
-        transplant(node, aux);        
-
+        aux = node->right;   
+        if(node->parent->value == d.node->value)
+          aux->parent = node;
+        else {
+          transplant(node, node->right);
+          node->right = d.node->right;
+          node->right->parent = node;
+        }
+        transplant(d.node, node);   
         node->left = d.node->left;
         d.node->left->parent = node;
-        node->right = d.node->right;
-        d.node->right->parent = node;
-        transplant(d.node, node);
-        
         node->color = d.node->color;
-        aux = node->right;
       }
       if(original_color == COLOR::BLACK) 
         remove_fix(aux);
@@ -349,7 +346,7 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(90);
+  auto s = rbtree.search(70);
   if(s != rbtree.null()) rbtree.remove(s);
 
   rbtree.print();
