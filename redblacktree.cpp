@@ -14,6 +14,8 @@ class RedBlackTree {
       Node* right;
       Node* parent;
 
+      bool is_null = true;
+
       Node* get_left() { return left; }
       Node* get_right() { return right; }
       Node* get_parent() { return parent; }
@@ -47,14 +49,14 @@ class RedBlackTree {
     }
 
     void print_helper(Node* node) {
-      if(node == nullptr) return;
+      if(node->is_null) return;
 
       cout << "value: " << node->value << " color: " << node->color << ' ';
-      if(node->left != nullptr)
+      if(!node->left->is_null)
        cout << "left child: " << node->left->value << ' ';
       else
        cout << "left child: " << "null" << ' ';
-      if(node->right != nullptr)
+      if(!node->right->is_null)
        cout << "right child: " << node->right->value << endl;
       else
        cout << "right child: " << "null" << endl;
@@ -110,7 +112,7 @@ class RedBlackTree {
         return;
       }
 
-      if(node->get_uncle() != nullptr && node->get_uncle()->color == COLOR::RED) {
+      if(!node->get_uncle()->is_null && node->get_uncle()->color == COLOR::RED) {
         node->get_uncle()->color = BLACK;
         node->parent->color = BLACK;
         node->get_grandparent()->color = RED;
@@ -141,7 +143,7 @@ class RedBlackTree {
     }
 
     Node* search_helper(Node* node, int value) {
-      if(node == nullptr) return node;
+      if(node->is_null) return nullptr;
       if(node->value > value) return search_helper(node->left, value);
       else if(node->value < value) return search_helper(node->right, value);
       return node;
@@ -160,7 +162,7 @@ class RedBlackTree {
 
     void remove_fix(Node* node) {
       if(node->parent == nullptr) return;
-      if(node->is_left_child()) {
+      if(node->is_left_child() && !node->is_null) {
         Node* right_child = node->parent->right;
         if(right_child->color == COLOR::RED) {
           right_child->color = BLACK;
@@ -188,6 +190,34 @@ class RedBlackTree {
           if(root->color == COLOR::RED)
             root->color = COLOR::BLACK;
         }
+      } else {
+        Node* left_child = node->parent->left;
+        if(left_child->color == COLOR::RED) {
+          left_child->color = BLACK;
+          node->parent->color = RED;
+          right_rotate(node->parent);
+          left_child = node->parent->left;
+        } 
+        if(left_child->color == COLOR::BLACK && left_child->left->color == COLOR::BLACK && left_child->right->color == COLOR::BLACK) {
+          left_child->color = RED;
+          node = node->parent;
+          if(node->color == RED) node->color = BLACK;
+          else remove_fix(node);
+        }
+        if(left_child->color == COLOR::BLACK && left_child->left->color == COLOR::BLACK) {
+          left_child->left->color = BLACK;
+          left_child->color = RED;
+          left_rotate(left_child);
+          left_child = node->parent->left;
+        } 
+        if(left_child->color == COLOR::BLACK && left_child->left->color == COLOR::RED) {
+          left_child->color = left_child->parent->color;
+          left_child->parent->color = BLACK;
+          left_child->left->color = BLACK;
+          right_rotate(left_child->parent);
+          if(root->color == COLOR::RED)
+            root->color = COLOR::BLACK;
+        }
       }
     }
 
@@ -205,7 +235,7 @@ class RedBlackTree {
 
         Node* successor(Node* n) {
           n = n->right;
-          while(n->left != nullptr)
+          while(!n->left->is_null)
             n = n->left;
           return n;
         }
@@ -227,9 +257,13 @@ class RedBlackTree {
 
       node->color = RED;
       node->value = value;
-      node->left = nullptr;
-      node->right = nullptr;
+      node->left = new(nothrow) Node;
+      node->right = new(nothrow) Node;
       node->parent = nullptr;
+      node->is_null = false;
+
+      node->left->parent = node;
+      node->right->parent = node;
 
       if(get_root() == nullptr) {
         node->color = BLACK;
@@ -239,14 +273,14 @@ class RedBlackTree {
         Node* aux = get_root();
         while(aux != nullptr) {
           if(value > aux->value) {
-            if(aux->get_right() == nullptr) {
+            if(aux->get_right()->is_null) {
               node->parent = aux;
               aux->right = node;
               break;
             }
             aux = aux->get_right();
           } else {
-            if(aux->get_left() == nullptr) {
+            if(aux->get_left()->is_null) {
               node->parent = aux;
               aux->left = node;
               break;
@@ -272,10 +306,10 @@ class RedBlackTree {
       COLOR original_color = node->color; // original color of y
       Node* aux;
 
-      if(d.node->left == nullptr) {
+      if(d.node->left->is_null) {
         aux = d.node->right;
         transplant(d.node, aux);
-      } else if(d.node->right == nullptr) {
+      } else if(d.node->right->is_null) {
         aux = d.node->left;
         transplant(d.node, aux);
       } else {
@@ -291,8 +325,8 @@ class RedBlackTree {
         transplant(d.node, node);
         
         node->color = d.node->color;
+        aux = node->right;
       }
-
       if(original_color == COLOR::BLACK) 
         remove_fix(aux);
     }
@@ -300,15 +334,13 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  rbtree.insert(75);
-  rbtree.insert(11);
+  rbtree.insert(70);
+  rbtree.insert(45);
   rbtree.insert(90);
-  rbtree.insert(4);
+  rbtree.insert(11);
   rbtree.insert(50);
   rbtree.insert(78);
   rbtree.insert(94);
-  rbtree.insert(45);
-  rbtree.insert(70);
   rbtree.insert(77);
   rbtree.insert(80);
   rbtree.insert(92);
@@ -317,9 +349,10 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  // auto s = rbtree.search(4);
-  // if(s != rbtree.null()) rbtree.remove(s);
+  auto s = rbtree.search(90);
+  if(s != rbtree.null()) rbtree.remove(s);
 
   rbtree.print();
+
   return 0;
 }
