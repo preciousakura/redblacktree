@@ -8,67 +8,62 @@ enum COLOR { BLACK, RED };
 class RedBlackTree {
   private:
     typedef struct Node {
-        int value;
-        COLOR color;
-        Node* left;
-        Node* right;
-        Node* parent;
+      int value;
+      COLOR color;
+      Node* left;
+      Node* right;
+      Node* parent;
 
-        Node* get_left() { return left; }
-        Node* get_right() { return right; }
-        Node* get_parent() { return parent; }
-        Node* get_grandparent() { 
-          if(parent == nullptr || parent->parent == nullptr) return nullptr;
-          return parent->parent;
-        }
-        Node* get_uncle() { 
-          if(get_grandparent() == nullptr) return nullptr;
-          if(parent->is_left_child()) return get_grandparent()->right;
-          return get_grandparent()->left;
-        }
+      Node* get_left() { return left; }
+      Node* get_right() { return right; }
+      Node* get_parent() { return parent; }
+      Node* get_grandparent() { 
+        if(parent == nullptr || parent->parent == nullptr) return nullptr;
+        return parent->parent;
+      }
+      Node* get_uncle() { 
+        if(get_grandparent() == nullptr) return nullptr;
+        if(parent->is_left_child()) return get_grandparent()->right;
+        return get_grandparent()->left;
+      }
 
-        int is_left_child() { 
-          if(parent == nullptr) return -1;
-          return value < parent->value;
-        }
+      int is_left_child() { 
+        if(parent == nullptr) return -1;
+        return value < parent->value;
+      }
 
-        int is_right_child() { 
-          if(parent == nullptr) return -1;
-          return value > parent->value;
-        }
-
+      int is_right_child() { 
+        if(parent == nullptr) return -1;
+        return value > parent->value;
+      }
     } Node;
 
     Node* root;
 
-  public:
-    RedBlackTree(): root(nullptr) {};
-    
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
       return root;
     }
 
-    class Iterator {
-      private:
-        Node* n;
+    void print_helper(Node* node) {
+      if(node == nullptr) return;
 
-      friend RedBlackTree;
-
-      public:
-        bool operator == (Iterator j) { return n == j.n; }
-        bool operator != (Iterator j) { return n != j.n; }
-        Iterator(Node *node) : n(node) {}
-        int value() { return n->value; }
-    };
-
-    Iterator end() { 
-      Iterator i(nullptr); 
-      return i; 
+      cout << "value: " << node->value << " color: " << node->color << ' ';
+      if(node->left != nullptr)
+       cout << "left child: " << node->left->value << ' ';
+      else
+       cout << "left child: " << "null" << ' ';
+      if(node->right != nullptr)
+       cout << "right child: " << node->right->value << endl;
+      else
+       cout << "right child: " << "null" << endl;
+      
+      print_helper(node->left);
+      print_helper(node->right);
     }
 
-    void right_rotate(Node* node){
+    void right_rotate(Node* node) {
       Node* aux = node->left;
       node->left = aux->right;
 
@@ -87,7 +82,7 @@ class RedBlackTree {
       node->parent = aux;
     }
 
-    void left_rotate(Node* node){
+    void left_rotate(Node* node) {
       Node* aux = node->right; // y
       node->right = aux->left;
 
@@ -106,7 +101,7 @@ class RedBlackTree {
       node->parent = aux;
     }
 
-    void balance(Node* node) {
+    void insert_fix(Node* node) {
       if(node == nullptr) return;
       if(node->parent != nullptr && node->parent->color == COLOR::BLACK) return;
 
@@ -119,7 +114,7 @@ class RedBlackTree {
         node->get_uncle()->color = BLACK;
         node->parent->color = BLACK;
         node->get_grandparent()->color = RED;
-        return balance(node->get_grandparent());
+        return insert_fix(node->get_grandparent());
       }
 
       if(node->parent->is_left_child() != -1 && node->parent->is_left_child()) {
@@ -132,7 +127,6 @@ class RedBlackTree {
         return right_rotate(node->get_grandparent());
       }
 
-
       if(node->parent->is_right_child() != -1 && node->parent->is_right_child())  {
         if(node->is_left_child()) {
           right_rotate(node->parent);
@@ -143,80 +137,189 @@ class RedBlackTree {
         return left_rotate(node->get_grandparent());
       }
 
-      return balance(node->parent);
+      return insert_fix(node->parent);
     }
 
-    Iterator insert(int value) {
-        Node* node = new(nothrow) Node;
-        if(node == nullptr) return end();
+    Node* search_helper(Node* node, int value) {
+      if(node == nullptr) return node;
+      if(node->value > value) return search_helper(node->left, value);
+      else if(node->value < value) return search_helper(node->right, value);
+      return node;
+    }
 
-        node->color = RED;
-        node->value = value;
-        node->left = nullptr;
-        node->right = nullptr;
-        node->parent = nullptr;
+    // u eh o noh que sai e v eh o noh que vai substituir
+    void transplant(Node* removed, Node* substitute) {
+      if(removed->parent == nullptr) 
+        root = substitute;
+      else if(removed->is_left_child()) 
+        removed->parent->left = substitute;
+      else
+        removed->parent->right = substitute;
+      substitute->parent = removed->parent;
+    }
 
-        if(get_root() == nullptr) {
-          node->color = BLACK;
-          root = node;
+    void remove_fix(Node* node) {
+      if(node->parent == nullptr) return;
+      if(node->is_left_child()) {
+        Node* right_child = node->parent->right;
+        if(right_child->color == COLOR::RED) {
+          right_child->color = BLACK;
+          node->parent->color = RED;
+          left_rotate(node->parent);
+          right_child = node->parent->right;
+        } 
+        if(right_child->color == COLOR::BLACK && right_child->left->color == COLOR::BLACK && right_child->right->color == COLOR::BLACK) {
+          right_child->color = RED;
+          node = node->parent;
+          if(node->color == RED) node->color = BLACK;
+          else remove_fix(node);
         }
-        else {
-          Node* aux = get_root();
-          while(aux != nullptr) {
-            if(value > aux->value) {
-              if(aux->get_right() == nullptr) {
-                node->parent = aux;
-                aux->right = node;
-                break;
-              }
-              aux = aux->get_right();
-            } else {
-              if(aux->get_left() == nullptr) {
-                node->parent = aux;
-                aux->left = node;
-                break;
-              }
-              aux = aux->get_left();
+        if(right_child->color == COLOR::BLACK && right_child->right->color == COLOR::BLACK) {
+          right_child->left->color = BLACK;
+          right_child->color = RED;
+          right_rotate(right_child);
+          right_child = node->parent->right;
+        } 
+        if(right_child->color == COLOR::BLACK && right_child->right->color == COLOR::RED) {
+          right_child->color = right_child->parent->color;
+          right_child->parent->color = BLACK;
+          right_child->right->color = BLACK;
+          left_rotate(right_child->parent);
+          if(root->color == COLOR::RED)
+            root->color = COLOR::BLACK;
+        }
+      }
+    }
+
+  public:
+    RedBlackTree(): root(nullptr) {};
+
+    class Data {
+      private:
+        Node* node;
+      friend RedBlackTree;
+      public:
+        bool operator == (Data d) { return node == d.node; }
+        bool operator != (Data d) { return node != d.node; }
+        void operator ++ () { node = successor(node); }
+
+        Node* successor(Node* n) {
+          n = n->right;
+          while(n->left != nullptr)
+            n = n->left;
+          return n;
+        }
+
+        Data(Node* node): node(node) {}
+        int value() { return node->value; }
+    };
+
+    Data null() { Data d(nullptr); return d; }
+
+    void print() {
+      Node* node = get_root();
+      print_helper(node);
+    }
+  
+    Data insert(int value) {
+      Node* node = new(nothrow) Node;
+      if(node == nullptr) return null(); 
+
+      node->color = RED;
+      node->value = value;
+      node->left = nullptr;
+      node->right = nullptr;
+      node->parent = nullptr;
+
+      if(get_root() == nullptr) {
+        node->color = BLACK;
+        root = node;
+      }
+      else {
+        Node* aux = get_root();
+        while(aux != nullptr) {
+          if(value > aux->value) {
+            if(aux->get_right() == nullptr) {
+              node->parent = aux;
+              aux->right = node;
+              break;
             }
+            aux = aux->get_right();
+          } else {
+            if(aux->get_left() == nullptr) {
+              node->parent = aux;
+              aux->left = node;
+              break;
+            }
+            aux = aux->get_left();
           }
-
-          balance(node);
         }
+        insert_fix(node);
+      }
 
-        Iterator i(node);
-        return i;
+      Data d(node);
+      return d;
     }
 
-    void print(Node* node) {
-      if(node == nullptr) return;
+    Data search(int value) {
+      Node* node = search_helper(get_root(), value);
+      Data d(node);
+      return d;
+    }
 
-      cout << "value: " << node->value << ' ';
-      if(node->left != nullptr)
-       cout << "left child: " << node->left->value << ' ';
-      else
-       cout << "left child: " << "null" << ' ';
-      if(node->right != nullptr)
-       cout << "right child: " << node->right->value << endl;
-      else
-       cout << "right child: " << "null" << endl;
-      
-      print(node->left);
-      print(node->right);
+    void remove(Data d) {
+      Node* node = d.node; // y
+      COLOR original_color = node->color; // original color of y
+      Node* aux;
+
+      if(d.node->left == nullptr) {
+        aux = d.node->right;
+        transplant(d.node, aux);
+      } else if(d.node->right == nullptr) {
+        aux = d.node->left;
+        transplant(d.node, aux);
+      } else {
+        node = d.successor(d.node); // y
+        aux = node->right;         
+        original_color = node->color;
+        transplant(node, aux);        
+
+        node->left = d.node->left;
+        d.node->left->parent = node;
+        node->right = d.node->right;
+        d.node->right->parent = node;
+        transplant(d.node, node);
+        
+        node->color = d.node->color;
+      }
+
+      if(original_color == COLOR::BLACK) 
+        remove_fix(aux);
     }
 };
 
 int main() {
   RedBlackTree rbtree; 
-  auto v1 = rbtree.insert(11);
-  auto v2 = rbtree.insert(2);
-  auto v3 = rbtree.insert(14);
-  auto v4 = rbtree.insert(7);
-  auto v5 = rbtree.insert(1);
-  auto v6 = rbtree.insert(15);
-  auto v7 = rbtree.insert(5);
-  auto v8 = rbtree.insert(8);
-  auto v9 = rbtree.insert(4);
+  rbtree.insert(75);
+  rbtree.insert(11);
+  rbtree.insert(90);
+  rbtree.insert(4);
+  rbtree.insert(50);
+  rbtree.insert(78);
+  rbtree.insert(94);
+  rbtree.insert(45);
+  rbtree.insert(70);
+  rbtree.insert(77);
+  rbtree.insert(80);
+  rbtree.insert(92);
+  rbtree.insert(96);
+  rbtree.insert(85);
+  rbtree.insert(95);
+  rbtree.insert(98);
   
-  rbtree.print(rbtree.get_root());
+  // auto s = rbtree.search(4);
+  // if(s != rbtree.null()) rbtree.remove(s);
+
+  rbtree.print();
   return 0;
 }
