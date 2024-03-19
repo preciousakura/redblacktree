@@ -31,17 +31,19 @@ class RedBlackTree {
 
       int is_left_child() { 
         if(parent == nullptr) return -1;
-        return value < parent->value;
+        //return value <= parent->value;
+          return this == parent->left;
       }
 
       int is_right_child() { 
         if(parent == nullptr) return -1;
-        return value > parent->value;
+        //return value > parent->value;
+        return this == parent->right;
       }
     } Node;
 
     Node* root;
-
+    
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
@@ -69,7 +71,7 @@ class RedBlackTree {
       Node* aux = node->left;
       node->left = aux->right;
 
-      if(aux->right != nullptr) 
+      if(!aux->right->is_null) 
         aux->right->parent = node;
       aux->parent = node->parent;
 
@@ -88,7 +90,7 @@ class RedBlackTree {
       Node* aux = node->right; // y
       node->right = aux->left;
 
-      if(aux->left != nullptr) 
+      if(!aux->left->is_null) 
         aux->left->parent = node;
       aux->parent = node->parent;
 
@@ -220,6 +222,7 @@ class RedBlackTree {
     }
 
   public:
+    Node nil = Node{-1, COLOR::BLACK, nullptr, nullptr, nullptr};
     RedBlackTree(): root(nullptr) {};
 
     class Data {
@@ -232,10 +235,21 @@ class RedBlackTree {
         void operator ++ () { node = successor(node); }
 
         Node* successor(Node* n) {
-          n = n->right;
-          while(!n->left->is_null)
-            n = n->left;
-          return n;
+          if (!n->right->is_null) // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
+          {
+            n = n->right;
+            while(!n->left->is_null)
+              n = n->left;
+            return n;
+          }
+          else // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
+          {
+            while((n->value != n->parent->left->value) && (n->parent != nullptr))
+            {
+              n = n->parent;
+            }
+            return n->parent; // Caso n não tenha sucessor, irá retornar nullptr
+          }
         }
 
         Data(Node* node): node(node) {}
@@ -255,8 +269,8 @@ class RedBlackTree {
 
       node->color = RED;
       node->value = value;
-      node->left = new(nothrow) Node;
-      node->right = new(nothrow) Node;
+      node->left = &(this->nil);
+      node->right = &(this->nil);
       node->parent = nullptr;
       node->is_null = false;
 
@@ -323,7 +337,7 @@ class RedBlackTree {
         }
         transplant(d.node, node);   
         node->left = d.node->left;
-        d.node->left->parent = node;
+        node->left->parent = node;
         node->color = d.node->color;
       }
       if(original_color == COLOR::BLACK) 
@@ -348,7 +362,7 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(70);
+  auto s = rbtree.search(90);
   if(s != rbtree.null()) rbtree.remove(s);
 
   rbtree.print();
