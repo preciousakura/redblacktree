@@ -1,6 +1,6 @@
 #include <iostream>
 #include <stdio.h>
-#include <vector>
+
 using namespace std;
 
 enum COLOR { BLACK, RED };
@@ -8,22 +8,6 @@ enum COLOR { BLACK, RED };
 class RedBlackTree {
   private:
     typedef struct Node {
-      
-      //Original
-      int value_og;
-      COLOR color_og;
-      Node* left_og;
-      Node* right_og;
-      Node* parent_og;
-
-      //Atual
-      int value_up;
-      COLOR color_up;
-      Node* left_up;
-      Node* right_up;
-      Node* parent_up;
-
-      //Trabalho
       int value;
       COLOR color;
       Node* left;
@@ -31,10 +15,6 @@ class RedBlackTree {
       Node* parent;
 
       bool is_null = true;
-
-      // Persistência
-      Node* retorno[3];
-      //vector<int*> mod_table(18);
 
       Node* get_left() { return left; }
       Node* get_right() { return right; }
@@ -130,14 +110,14 @@ class RedBlackTree {
       if(node->parent != nullptr && node->parent->color == COLOR::BLACK) return;
 
       if(node->parent == nullptr && node->color == COLOR::RED) {
-        node->color = BLACK; //MOD
+        node->color = BLACK;
         return;
       }
 
       if(!node->get_uncle()->is_null && node->get_uncle()->color == COLOR::RED) {
-        node->get_uncle()->color = BLACK; //MOD
-        node->parent->color = BLACK; //MOD
-        node->get_grandparent()->color = RED; //MOD
+        node->get_uncle()->color = BLACK;
+        node->parent->color = BLACK;
+        node->get_grandparent()->color = RED;
         return insert_fix(node->get_grandparent());
       }
 
@@ -146,14 +126,8 @@ class RedBlackTree {
           left_rotate(node->parent);
           node = node->left;
         } 
-        if (node->parent->color != BLACK)
-        {
-          node->parent->color = BLACK; //MOD
-        }
-        if(node->get_grandparent()->color != RED)
-        {
-        node->get_grandparent()->color = RED; //MOD
-        }
+        node->parent->color = BLACK;
+        node->get_grandparent()->color = RED;
         return right_rotate(node->get_grandparent());
       }
 
@@ -162,14 +136,8 @@ class RedBlackTree {
           right_rotate(node->parent);
           node = node->right;
         }
-        if(node->parent->color != BLACK)
-        {
-          node->parent->color = BLACK; //MOD
-        }
-        if(node->get_grandparent()->color != RED)
-        {
-          node->get_grandparent()->color = RED; // MOD
-        }
+        node->parent->color = BLACK;
+        node->get_grandparent()->color = RED;
         return left_rotate(node->get_grandparent());
       }
 
@@ -294,38 +262,7 @@ class RedBlackTree {
       Node* node = get_root();
       print_helper(node);
     }
-
-    void reg_mods(Node* node)
-    {
-      if (node->color != node->color_up)
-      {
-        //insert mod in table
-        node->color_up = node->color;
-      }
-      if (node->value != node->value_up)
-      {
-        //insert mod in table
-        node->value_up = node->value;
-      }
-      if (node->left != node->left_up)
-      {
-        //insert mod in table
-        node->left_up = node->left;
-      }
-      if (node->right != node->right_up)
-      {
-        //insert mod in table
-        node->right_up = node->right;
-      }
-      if (node->parent != node->parent_up)
-      {
-        //insert mod in table
-        node->parent_up = node->parent;
-      }
-      reg_mods(node->left);
-      reg_mods(node->right);
-    }  
-
+  
     Data insert(int value) {
       Node* node = new(nothrow) Node;
       if(node == nullptr) return null(); 
@@ -350,21 +287,20 @@ class RedBlackTree {
           if(value > aux->value) {
             if(aux->get_right()->is_null) {
               node->parent = aux;
-              aux->right = node; // MOD
+              aux->right = node;
               break;
             }
             aux = aux->get_right();
           } else {
             if(aux->get_left()->is_null) {
               node->parent = aux;
-              aux->left = node; //MOD
+              aux->left = node;
               break;
             }
             aux = aux->get_left();
           }
         }
         insert_fix(node);
-        reg_mods(root);
       }
 
       Data d(node);
