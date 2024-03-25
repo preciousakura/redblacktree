@@ -19,7 +19,7 @@ class RedBlackTree {
       bool is_null = true;
 
       class Mod {
-        private:
+        public:
           int field; 
           Node* node;
           COLOR color;
@@ -436,6 +436,63 @@ class RedBlackTree {
       return d;
     }
 
+    Data search(int value, int version)
+    {
+      int size_roots = this->roots.size();
+      Node* root_version;
+      if(size_roots > 0 )
+      {
+        for(int i = 0; (this->roots[i]).second <= version && i < size_roots; i++)
+        {
+          root_version = this->roots[i].first;
+        }
+      }
+      else
+      {
+        root_version = this->root;
+      }
+
+      while(root_version != &(this->nil))
+      {
+        if (root_version->value > value)
+        {
+          Node* temp = root_version->left;
+          for(Node::Mod m: root_version->mods)
+          {
+            if (m.version > version)
+            {
+              break;
+            }
+            else if(m.field == 1)
+            {
+              temp = m.node;
+            }
+          }
+          root_version = temp;
+        }
+        else if (root_version->value < value)
+        {
+          Node* temp = root_version->right;
+          for(Node::Mod m: root_version->mods)
+          {
+            if (m.version > version)
+            {
+              break;
+            }
+            else if(m.field == 2)
+            {
+              temp = m.node;
+            }
+          }
+          root_version = temp;
+        }
+        else
+        {
+          Data d(root_version);
+          return d;
+        }
+      }
+    }
     void remove(Data d) {
       Node* node = d.node; // y
       COLOR original_color = node->color; // original color of y
