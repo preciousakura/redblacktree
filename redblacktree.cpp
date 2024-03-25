@@ -4,7 +4,6 @@
 
 using namespace std;
 
-#define SIZE = 6;
 
 enum COLOR { BLACK, RED };
 
@@ -30,7 +29,6 @@ class RedBlackTree {
 
           Mod(): node(nullptr), color(BLACK) {}
 
-          Node* change_node(Node* node){}
       };
 
       vector<Mod> mods;
@@ -38,8 +36,14 @@ class RedBlackTree {
       Node* next;
       Node* return_pointers[3]; // 0:left, 1:right, 2:parent
 
+      void register_old_root(int version)
+      {
+        roots.emplace_back(make_pair(this, version));
+      }
+
       void copy(int version) {
-        Node* node_copy = new Node*;
+
+        Node* node_copy = new Node();
         node_copy->value= this->value;
         node_copy->color= this->color;
         node_copy->left= this->left;
@@ -80,7 +84,7 @@ class RedBlackTree {
       void modify(int current, int type_field, COLOR color) {
         int size = mods.size();
 
-        if(size == SIZE) return copy(current);
+        if(size == 6) return copy(current);
 
         int i = size - 1;
         bool new_mod = true;
@@ -91,14 +95,19 @@ class RedBlackTree {
         }
         if(new_mod)
         {
-          mods.emplace_back(new Mod{type_field, nullptr, color, current});
+          Mod mod;
+          mod.field = type_field;
+          mod.node = nullptr;
+          mod.color = color; 
+          mod.version = current;
+          mods.emplace_back(mod);
         }
       }
 
       void modify(int current, int type_field, Node* modify_node) {
         int size = mods.size();
 
-        if(size == SIZE) return copy();
+        if(size == 6) return copy(current);
 
         int i = size - 1;
         bool new_mod = true;
@@ -123,7 +132,12 @@ class RedBlackTree {
 
         if(new_mod)
         {
-          mods.emplace_back(new Mod{type_field, modify_node, 0, current});
+          Mod mod;
+          mod.field = type_field;
+          mod.node = modify_node;
+          mod.color = BLACK; 
+          mod.version = current;
+          mods.emplace_back(mod);
         }
       }
 
@@ -152,13 +166,12 @@ class RedBlackTree {
     } Node;
 
     Node* root;
-    pair<Node*, int> roots;
+    vector<pair<Node*, int>> roots;
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
       return root;
     }
-
     void print_helper(Node* node) {
       if(node->is_null) return;
 
