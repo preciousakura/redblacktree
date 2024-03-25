@@ -1,7 +1,10 @@
 #include <iostream>
 #include <stdio.h>
+#include <vector>
 
 using namespace std;
+
+#define SIZE = 6;
 
 enum COLOR { BLACK, RED };
 
@@ -15,6 +18,59 @@ class RedBlackTree {
       Node* parent;
 
       bool is_null = true;
+
+      class Mod {
+        private:
+          int field; 
+          Node* node;
+          COLOR color;
+          int version;
+
+          friend Node;
+
+          Mod(): node(nullptr), color(BLACK) {}
+
+          Node* change_node(Node* node){}
+      };
+
+      vector<Mod> mods;
+      Node* next;
+
+      Node* return_pointers[3];
+
+      void copy() {
+        Node* node_copy = new Node*;
+
+        // copiar todos os nos de mod
+        // criar um vetor de mod vAZIO
+        // 
+      }
+
+      void modify(int current, int type_field, COLOR color) {
+        int size = mods.size();
+
+        if(size == SIZE) copy();
+
+        int i = size - 1;
+        while(mods[i].version == current) {
+          if(mods[i].field == type_field) 
+            mods[i].color = color;
+          i--; 
+        }
+      }
+
+      void modify(int current, int type_field, Node* modify_node) {
+        int size = mods.size();
+
+        if(size == SIZE) copy();
+
+        int i = size - 1;
+        while(mods[i].version == current) {
+          if(mods[i].field == type_field) 
+            mods[i].node = modify_node;
+          i--; 
+        }
+      }
 
       Node* get_left() { return left; }
       Node* get_right() { return right; }
@@ -31,13 +87,11 @@ class RedBlackTree {
 
       int is_left_child() { 
         if(parent == nullptr) return -1;
-        //return value <= parent->value;
-          return this == parent->left;
+        return this == parent->left;
       }
 
       int is_right_child() { 
         if(parent == nullptr) return -1;
-        //return value > parent->value;
         return this == parent->right;
       }
     } Node;
@@ -222,7 +276,7 @@ class RedBlackTree {
     }
 
   public:
-    Node nil = Node{-1, COLOR::BLACK, nullptr, nullptr, nullptr};
+    Node nil;
     RedBlackTree(): root(nullptr) {};
 
     class Data {
@@ -309,6 +363,7 @@ class RedBlackTree {
 
     Data search(int value) {
       Node* node = search_helper(get_root(), value);
+      cout << node->mods.size() << endl;
       Data d(node);
       return d;
     }
@@ -362,8 +417,8 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(90);
-  if(s != rbtree.null()) rbtree.remove(s);
+  auto s = rbtree.search(70);
+  // if(s != rbtree.null()) rbtree.remove(s);
 
   rbtree.print();
 
