@@ -12,10 +12,10 @@ class RedBlackTree {
   private:
     typedef struct Node {
       int value;
-      COLOR color;
-      Node* left;
-      Node* right;
-      Node* parent;
+      COLOR color; // 0
+      Node* left; // 1
+      Node* right; // 2
+      Node* parent; // 3
 
       bool is_null = true;
 
@@ -34,41 +34,96 @@ class RedBlackTree {
       };
 
       vector<Mod> mods;
+
       Node* next;
+      Node* return_pointers[3]; // 0:left, 1:right, 2:parent
 
-      Node* return_pointers[3];
-
-      void copy() {
+      void copy(int version) {
         Node* node_copy = new Node*;
+        node_copy->value= this->value;
+        node_copy->color= this->color;
+        node_copy->left= this->left;
+        node_copy->right= this->right;
+        node_copy->parent= this->parent;
 
-        // copiar todos os nos de mod
-        // criar um vetor de mod vAZIO
-        // 
+        for(Mod m: this->mods)
+        {
+          switch (m.field)
+          {
+          case 0:
+            node_copy->color = m.color;
+            break;
+          case 1:
+            node_copy->left = m.node;
+            break;
+          case 2:
+            node_copy->right = m.node;
+            break;
+          case 3:
+            node_copy->parent = m.node;
+          break;
+          }
+        }
+
+        this->next = node_copy;
+        return_pointers[0]->modify(version, 3, this->next);
+        return_pointers[1]->modify(version, 3, this->next);
+        if(this->is_left_child())
+        {
+          return_pointers[2]->modify(version, 1, this->next);
+        } else if(this->is_right_child())
+        {
+          return_pointers[2]->modify(version, 2, this->next);
+        }
       }
 
       void modify(int current, int type_field, COLOR color) {
         int size = mods.size();
 
-        if(size == SIZE) copy();
+        if(size == SIZE) return copy(current);
 
         int i = size - 1;
+        bool new_mod = true;
         while(mods[i].version == current) {
           if(mods[i].field == type_field) 
             mods[i].color = color;
           i--; 
+        }
+        if(new_mod)
+        {
+          mods.emplace_back(new Mod{type_field, nullptr, color, current});
         }
       }
 
       void modify(int current, int type_field, Node* modify_node) {
         int size = mods.size();
 
-        if(size == SIZE) copy();
+        if(size == SIZE) return copy();
 
         int i = size - 1;
+        bool new_mod = true;
         while(mods[i].version == current) {
+          new_mod = false;
           if(mods[i].field == type_field) 
             mods[i].node = modify_node;
+            switch(mods[i].field)
+            {
+              case 1:
+                return_pointers[0] = modify_node;
+                break;
+              case 2:
+                return_pointers[1] = modify_node;
+                break;
+              case 3:
+                return_pointers[2] = modify_node;
+                break;
+            }
           i--; 
+        }
+
+        if(new_mod)
+        {
+          mods.emplace_back(new Mod{type_field, modify_node, 0, current});
         }
       }
 
@@ -97,7 +152,7 @@ class RedBlackTree {
     } Node;
 
     Node* root;
-    
+    pair<Node*, int> roots;
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
