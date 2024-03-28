@@ -398,6 +398,7 @@ class RedBlackTree {
       if(get_root() == nullptr) {
         node->color = BLACK;
         root = node;
+        create_root(node, 0);
       }
       else {
         Node* aux = get_root();
