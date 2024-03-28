@@ -31,6 +31,10 @@ class RedBlackTree {
         return get_grandparent()->left;
       }
 
+      bool is_root() {
+        return parent == nullptr;
+      }
+
       int is_left_child() { 
         if(parent == nullptr) return -1;
         return this == parent->left;
@@ -185,6 +189,9 @@ class RedBlackTree {
 
       aux->right = node;
       node->parent = aux;
+
+      if(node->parent->is_root())
+        create_root(node->parent, this->current_version++);
     }
 
     void left_rotate(Node* node) {
@@ -204,6 +211,9 @@ class RedBlackTree {
 
       aux->left = node;
       node->parent = aux;
+
+      if(node->parent->is_root())
+        create_root(node->parent, this->current_version++);
     }
 
     void insert_fix(Node* node) {
@@ -488,8 +498,10 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(11, 0);
-  if(s != rbtree.null()) rbtree.remove(s);
+  auto s = rbtree.search(78, 1);
+  if(s != rbtree.null()) {
+    cout << "Achei!" << endl;
+  }
 
   rbtree.print();
 
