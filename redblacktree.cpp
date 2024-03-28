@@ -129,6 +129,7 @@ class RedBlackTree {
 
     Node* root;
     vector<pair<Node*, int>> roots;
+    int current_version = 0;
 
     void create_root(Node* node, int version) { roots.emplace_back(make_pair(node, version)); }
 
@@ -398,7 +399,7 @@ class RedBlackTree {
       if(get_root() == nullptr) {
         node->color = BLACK;
         root = node;
-        create_root(node, 0);
+        create_root(node, current_version);
       }
       else {
         Node* aux = get_root();
