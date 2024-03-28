@@ -135,7 +135,7 @@ class RedBlackTree {
     Node* get_root(int version) {
       Node* root;
       int size = this->roots.size();
-      if(size > 0) {
+      if(size > 1) {
         for(int i = 0; this->roots[i].second <= version && i < size; i++) 
           root =  this->roots[i].first;
       }
