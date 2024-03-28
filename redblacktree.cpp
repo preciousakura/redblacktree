@@ -31,10 +31,6 @@ class RedBlackTree {
         return get_grandparent()->left;
       }
 
-      bool is_root() {
-        return parent == nullptr;
-      }
-
       int is_left_child() { 
         if(parent == nullptr) return -1;
         return this == parent->left;
@@ -93,7 +89,7 @@ class RedBlackTree {
         return mod;
       }
 
-      void modify(int current_version, int field_type, COLOR color, Node* pointer) {
+      void modify(int version, int field_type, COLOR color, Node* pointer) {
         int size = this->mods.size();
         if(size == 6) { 
           Node* node_copy = new Node(this->value, this->color, this->left, this->right, this->parent);
@@ -115,14 +111,14 @@ class RedBlackTree {
           }
 
           this->next = node_copy;
-          return_left->modify(current_version, 1, BLACK, this->next);
-          return_right->modify(current_version, 2, BLACK, this->next);
-          return_parent->modify(current_version, 3, BLACK, this->next);
+          return_left->modify(version, 1, BLACK, this->next);
+          return_right->modify(version, 2, BLACK, this->next);
+          return_parent->modify(version, 3, BLACK, this->next);
         }
 
-        Mod mod = this->create_mod(current_version, field_type, color, pointer);
+        Mod mod = this->create_mod(version, field_type, color, pointer);
         int i = size - 1;
-        while(mods[i].version == current_version) {
+        while(mods[i].version == version) {
           if(mods[i].type_field == field_type) mods[i] = mod;
           i--;
         }
@@ -135,7 +131,10 @@ class RedBlackTree {
     vector<pair<Node*, int>> roots;
     int current_version = 0;
 
-    void create_root(Node* node, int version) { roots.emplace_back(make_pair(node, version)); }
+    void create_root(Node* node, int version) { 
+      roots.emplace_back(make_pair(node, version));
+      this->current_version = version;
+    }
 
     Node* get_root(int version) {
       Node* root;
@@ -180,8 +179,10 @@ class RedBlackTree {
         aux->right->parent = node;
       aux->parent = node->parent;
 
-      if(node->parent == nullptr) 
+      if(node->parent == nullptr) {
         root = aux;
+        create_root(aux, this->current_version + 1);
+      }
       else if(node->is_right_child()) 
         node->parent->right = aux;
       else 
@@ -189,9 +190,6 @@ class RedBlackTree {
 
       aux->right = node;
       node->parent = aux;
-
-      if(node->parent->is_root())
-        create_root(node->parent, this->current_version++);
     }
 
     void left_rotate(Node* node) {
@@ -202,8 +200,10 @@ class RedBlackTree {
         aux->left->parent = node;
       aux->parent = node->parent;
 
-      if(node->parent == nullptr) 
+      if(node->parent == nullptr) {
         root = aux;
+        create_root(aux, this->current_version + 1);
+      }
       else if(node->is_left_child()) 
         node->parent->left = aux;
       else
@@ -211,9 +211,6 @@ class RedBlackTree {
 
       aux->left = node;
       node->parent = aux;
-
-      if(node->parent->is_root())
-        create_root(node->parent, this->current_version++);
     }
 
     void insert_fix(Node* node) {
@@ -282,8 +279,10 @@ class RedBlackTree {
 
     // u eh o noh que sai e v eh o noh que vai substituir
     void transplant(Node* removed, Node* substitute) {
-      if(removed->parent == nullptr) 
+      if(removed->parent == nullptr) {
         root = substitute;
+        create_root(substitute, this->current_version + 1);
+      }
       else if(removed->is_left_child()) 
         removed->parent->left = substitute;
       else
@@ -409,7 +408,7 @@ class RedBlackTree {
       if(get_root() == nullptr) {
         node->color = BLACK;
         root = node;
-        create_root(node, current_version);
+        create_root(node, this->current_version);
       }
       else {
         Node* aux = get_root();
@@ -498,9 +497,9 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(78, 1);
+  auto s = rbtree.search(80, 1);
   if(s != rbtree.null()) {
-    cout << "Achei!" << endl;
+    rbtree.remove(s);
   }
 
   rbtree.print();
