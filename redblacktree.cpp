@@ -132,6 +132,18 @@ class RedBlackTree {
 
     void create_root(Node* node, int version) { roots.emplace_back(make_pair(node, version)); }
 
+    Node* get_root(int version) {
+      Node* root;
+      int size = this->roots.size();
+      if(size > 0) {
+        for(int i = 0; this->roots[i].second <= version && i < size; i++) 
+          root =  this->roots[i].first;
+      }
+      else 
+        root = this->root;
+      return root;
+    }
+
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
@@ -419,17 +431,8 @@ class RedBlackTree {
       return d;
     }
 
-    Data search(int value, int version) {
-      Node* root;
-      int size = this->roots.size();
-      if(size > 0) {
-        for(int i = 0; this->roots[i].second <= version && i < size; i++) 
-          root =  this->roots[i].first;
-      }
-      else 
-        root = this->root;
-      
-      Node* node = search_helper(root, value, version);
+    Data search(int value, int version) {      
+      Node* node = search_helper(get_root(version), value, version);
       Data d(node);
       return d;
     }
