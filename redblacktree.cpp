@@ -58,9 +58,9 @@ class RedBlackTree {
 
       vector<Mod> mods;
 
-      Node(): mods(6) {} 
+      Node() {} 
       Node(int value, COLOR color, Node* left, Node* right, Node* parent): 
-        value(value), color(color), left(left), right(right), parent(parent), mods(6) {} 
+        value(value), color(color), left(left), right(right), parent(parent) {} 
       
       Node* return_left;
       Node* return_right;
@@ -95,7 +95,7 @@ class RedBlackTree {
 
       void modify(int current_version, int field_type, COLOR color, Node* pointer) {
         int size = this->mods.size();
-        if(size == this->mods.capacity()) { 
+        if(size == 6) { 
           Node* node_copy = new Node(this->value, this->color, this->left, this->right, this->parent);
           for(Mod m : this->mods) {
             switch (m.type_field) {
