@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdio.h>
+#include <vector>
 
 using namespace std;
 
@@ -23,6 +24,7 @@ class RedBlackTree {
         if(parent == nullptr || parent->parent == nullptr) return nullptr;
         return parent->parent;
       }
+
       Node* get_uncle() { 
         if(get_grandparent() == nullptr) return nullptr;
         if(parent->is_left_child()) return get_grandparent()->right;
@@ -31,19 +33,105 @@ class RedBlackTree {
 
       int is_left_child() { 
         if(parent == nullptr) return -1;
-        //return value <= parent->value;
-          return this == parent->left;
+        return this == parent->left;
       }
 
       int is_right_child() { 
         if(parent == nullptr) return -1;
-        //return value > parent->value;
         return this == parent->right;
+      }
+
+      typedef struct Mod {
+        Node* left;
+        Node* right;
+        Node* parent;
+        COLOR color;
+        int version;
+
+        int type_field;
+
+      } Mod;
+
+      vector<Mod> mods;
+
+      Node(): mods(6) {} 
+      Node(int value, COLOR color, Node* left, Node* right, Node* parent): 
+        value(value), color(color), left(left), right(right), parent(parent), mods(6) {} 
+      
+      Node* return_left;
+      Node* return_right;
+      Node* return_parent;
+      
+      Node* next; // prox mods;
+
+      Mod create_mod(int version, int field, COLOR color, Node* pointer) {
+        Mod mod = { this->left, this->right, this->parent, this->color, version, field };
+
+        if(field == 0) { mod.color = color; return mod; }
+
+        switch (field) {
+          case 1:
+            mod.left = pointer;
+            this->return_left = pointer;
+            break;
+
+          case 2:
+            mod.right = pointer;
+            this->return_right = pointer;
+            break;
+
+          case 3:
+            mod.parent = pointer;
+            this->return_parent = pointer;
+            break;
+        }
+         
+        return mod;
+      }
+
+      void modify(int current_version, int field_type, COLOR color, Node* pointer) {
+        int size = this->mods.size();
+        if(size == this->mods.capacity()) { 
+          Node* node_copy = new Node(this->value, this->color, this->left, this->right, this->parent);
+          for(Mod m : this->mods) {
+            switch (m.type_field) {
+              case 0:
+                node_copy->color = m.color;
+                break;
+              case 1:
+                node_copy->left = m.left;
+                break;
+              case 2:
+                node_copy->right = m.right;
+                break;
+              case 3:
+                node_copy->parent = m.parent;
+              break;
+            }
+          }
+
+          this->next = node_copy;
+          return_left->modify(current_version, 1, BLACK, this->next);
+          return_right->modify(current_version, 2, BLACK, this->next);
+          return_parent->modify(current_version, 3, BLACK, this->next);
+        }
+
+        Mod mod = this->create_mod(current_version, field_type, color, pointer);
+        int i = size - 1;
+        while(mods[i].version == current_version) {
+          if(mods[i].type_field == field_type) mods[i] = mod;
+          i--;
+        }
+
+        this->mods.emplace_back(mod);
       }
     } Node;
 
     Node* root;
-    
+    vector<pair<Node*, int>> roots;
+
+    void create_root(Node* node, int version) { roots.emplace_back(make_pair(node, version)); }
+
     Node* get_root() { 
       if(root == nullptr) 
         return nullptr;
@@ -144,6 +232,24 @@ class RedBlackTree {
       return insert_fix(node->parent);
     }
 
+    Node* search_helper(Node* node, int value, int version) {
+      if(node->is_null) return nullptr;
+      if(node->value > value) {
+        for(Node::Mod m : node->mods) {
+          if(m.version > version) return search_helper(node->left, value);
+          else if(m.type_field == 1) node->left = m.left;
+        }
+      }
+      else if(node->value < value) {
+        for(Node::Mod m : node->mods) {
+          if(m.version > version) return search_helper(node->right, value);
+          else if(m.type_field == 2) node->right = m.right;
+        }
+      }
+      
+      return node;
+    }
+
     Node* search_helper(Node* node, int value) {
       if(node->is_null) return nullptr;
       if(node->value > value) return search_helper(node->left, value);
@@ -222,7 +328,7 @@ class RedBlackTree {
     }
 
   public:
-    Node nil = Node{-1, COLOR::BLACK, nullptr, nullptr, nullptr};
+    Node nil;
     RedBlackTree(): root(nullptr) {};
 
     class Data {
@@ -313,6 +419,21 @@ class RedBlackTree {
       return d;
     }
 
+    Data search(int value, int version) {
+      Node* root;
+      int size = this->roots.size();
+      if(size > 0) {
+        for(int i = 0; this->roots[i].second <= version && i < size; i++) 
+          root =  this->roots[i].first;
+      }
+      else 
+        root = this->root;
+      
+      Node* node = search_helper(root, value, version);
+      Data d(node);
+      return d;
+    }
+
     void remove(Data d) {
       Node* node = d.node; // y
       COLOR original_color = node->color; // original color of y
@@ -362,7 +483,7 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(90);
+  auto s = rbtree.search(11, 0);
   if(s != rbtree.null()) rbtree.remove(s);
 
   rbtree.print();
