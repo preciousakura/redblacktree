@@ -49,6 +49,25 @@ class RedBlackTree {
         int version;
 
         int type_field;
+        bool is_same_field(COLOR value, int field) {
+          return value == color;
+        }
+
+        bool is_same_field(Node* value, int field) {
+          switch (field) {
+            case 1:
+              return value == left;
+              break;
+
+            case 2:
+              return value == right;
+              break;
+
+            case 3:
+              return value == parent;
+              break;
+          }
+        }
 
       } Mod;
 
@@ -111,18 +130,27 @@ class RedBlackTree {
           }
 
           this->next = node_copy;
-          return_left->modify(version, 1, BLACK, this->next);
-          return_right->modify(version, 2, BLACK, this->next);
-          return_parent->modify(version, 3, BLACK, this->next);
+          return_left->modify(version, 3, BLACK, this->next);
+          return_right->modify(version, 3, BLACK, this->next);
+          if(this->is_left_child()) 
+            return_parent->modify(version, 1, BLACK, this->next);
+          else if(this->is_right_child()) 
+            return_parent->modify(version, 2, BLACK, this->next);
         }
 
         Mod mod = this->create_mod(version, field_type, color, pointer);
         int i = size - 1;
-        while(mods[i].version == version) {
-          if(mods[i].type_field == field_type) mods[i] = mod;
-          i--;
-        }
+        if(i >= 0) {
+          bool is_same_field = field_type > 0 ? 
+                               mods[i].is_same_field(pointer, field_type) : 
+                               mods[i].is_same_field(color, field_type);
 
+          if(is_same_field) return;
+          if(mods[i].version == mod.version && mods[i].type_field == mod.type_field && !is_same_field) {
+            mods.pop_back(); 
+            return;
+          }
+        }
         this->mods.emplace_back(mod);
       }
     } Node;
@@ -133,7 +161,6 @@ class RedBlackTree {
 
     void create_root(Node* node, int version) { 
       roots.emplace_back(make_pair(node, version));
-      this->current_version = version;
     }
 
     Node* get_root(int version) {
@@ -181,7 +208,7 @@ class RedBlackTree {
 
       if(node->parent == nullptr) {
         root = aux;
-        create_root(aux, this->current_version + 1);
+        create_root(aux, this->current_version);
       }
       else if(node->is_right_child()) 
         node->parent->right = aux;
@@ -202,7 +229,7 @@ class RedBlackTree {
 
       if(node->parent == nullptr) {
         root = aux;
-        create_root(aux, this->current_version + 1);
+        create_root(aux, this->current_version);
       }
       else if(node->is_left_child()) 
         node->parent->left = aux;
@@ -213,20 +240,27 @@ class RedBlackTree {
       node->parent = aux;
     }
 
-    void insert_fix(Node* node) {
+    void insert_fix(Node* node, int version) {
       if(node == nullptr) return;
       if(node->parent != nullptr && node->parent->color == COLOR::BLACK) return;
 
       if(node->parent == nullptr && node->color == COLOR::RED) {
         node->color = BLACK;
+        node->modify(version, 0, BLACK, node);
         return;
       }
 
       if(!node->get_uncle()->is_null && node->get_uncle()->color == COLOR::RED) {
         node->get_uncle()->color = BLACK;
+        node->get_uncle()->modify(version, 0, BLACK, node->get_uncle());
+
         node->parent->color = BLACK;
+        node->parent->modify(version, 0, BLACK, node->parent);
+
         node->get_grandparent()->color = RED;
-        return insert_fix(node->get_grandparent());
+        node->get_grandparent()->modify(version, 0, RED, node->get_grandparent());
+
+        return insert_fix(node->get_grandparent(), version);
       }
 
       if(node->parent->is_left_child() != -1 && node->parent->is_left_child()) {
@@ -235,7 +269,11 @@ class RedBlackTree {
           node = node->left;
         } 
         node->parent->color = BLACK;
+        node->parent->modify(version, 0, BLACK, node->parent);
+
         node->get_grandparent()->color = RED;
+        node->get_grandparent()->modify(version, 0, RED, node->get_grandparent());
+
         return right_rotate(node->get_grandparent());
       }
 
@@ -245,11 +283,15 @@ class RedBlackTree {
           node = node->right;
         }
         node->parent->color = BLACK;
+        node->parent->modify(version, 0, BLACK, node->parent);
+
         node->get_grandparent()->color = RED;
+        node->get_grandparent()->modify(version, 0, RED, node->get_grandparent());
+
         return left_rotate(node->get_grandparent());
       }
 
-      return insert_fix(node->parent);
+      return insert_fix(node->parent, version);
     }
 
     Node* search_helper(Node* node, int value, int version) {
@@ -281,7 +323,7 @@ class RedBlackTree {
     void transplant(Node* removed, Node* substitute) {
       if(removed->parent == nullptr) {
         root = substitute;
-        create_root(substitute, this->current_version + 1);
+        create_root(substitute, this->current_version);
       }
       else if(removed->is_left_child()) 
         removed->parent->left = substitute;
@@ -395,6 +437,8 @@ class RedBlackTree {
       Node* node = new(nothrow) Node;
       if(node == nullptr) return null(); 
 
+      this->current_version++;
+
       node->color = RED;
       node->value = value;
       node->left = &(this->nil);
@@ -429,7 +473,7 @@ class RedBlackTree {
             aux = aux->get_left();
           }
         }
-        insert_fix(node);
+        insert_fix(node, this->current_version);
       }
 
       Data d(node);
@@ -498,10 +542,7 @@ int main() {
   rbtree.insert(98);
   
   auto s = rbtree.search(80, 1);
-  if(s != rbtree.null()) {
-    rbtree.remove(s);
-  }
-
+  if(s != rbtree.null()) rbtree.remove(s);
   rbtree.print();
 
   return 0;
