@@ -50,21 +50,21 @@ class RedBlackTree {
 
         int type_field;
         bool is_same_field(COLOR value, int field) {
-          return value == color;
+          return field == type_field && value == color;
         }
 
         bool is_same_field(Node* value, int field) {
           switch (field) {
             case 1:
-              return value == left;
+              return field == type_field && value == left;
               break;
 
             case 2:
-              return value == right;
+              return field == type_field && value == right;
               break;
 
             case 3:
-              return value == parent;
+              return field == type_field && value == parent;
               break;
           }
         }
@@ -438,14 +438,15 @@ class RedBlackTree {
 
       this->current_version++;
 
+      node->is_null = false;
+      node->value = value;
+
       node->color = RED;
       node->modify(this->current_version, 0, RED, node);
 
-      node->value = value;
       node->left = &(this->nil);
       node->right = &(this->nil);
       node->parent = nullptr;
-      node->is_null = false;
 
       node->left->parent = node;
       node->right->parent = node;
