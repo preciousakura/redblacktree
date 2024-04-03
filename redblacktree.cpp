@@ -139,18 +139,17 @@ class RedBlackTree {
         }
 
         Mod mod = this->create_mod(version, field_type, color, pointer);
-        int i = size - 1;
-        if(i >= 0) {
+        if(size > 0) {
+          int i = size - 1;
+          while(mods[i].version == mod.version && mods[i].type_field == mod.type_field) {
+            mods.pop_back(); 
+            i--;
+          }
           bool is_same_field = field_type > 0 ? 
                                mods[i].is_same_field(pointer, field_type) : 
                                mods[i].is_same_field(color, field_type);
-
           if(is_same_field) return;
-          if(mods[i].version == mod.version && mods[i].type_field == mod.type_field && !is_same_field) {
-            mods.pop_back(); 
-            return;
-          }
-        }
+        } 
         this->mods.emplace_back(mod);
       }
     } Node;
@@ -440,6 +439,8 @@ class RedBlackTree {
       this->current_version++;
 
       node->color = RED;
+      node->modify(this->current_version, 0, RED, node);
+
       node->value = value;
       node->left = &(this->nil);
       node->right = &(this->nil);
