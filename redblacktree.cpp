@@ -17,8 +17,88 @@ class RedBlackTree {
 
       bool is_null = true;
 
-      Node* get_left() { return left; }
-      Node* get_right() { return right; }
+      Node* get_left(int version)
+      {
+        Node* left = this->left;
+        if(this->mods.back().version > version)
+        {
+          for(Mod m: this->mods)
+          {
+              if (m.type_field == 1 && m.version <= version)
+              {
+                left = m.left;
+              }
+          }
+          return left;
+        }
+        else if(this->mods.back().version < version)
+        {
+          return this->next->get_left(version);
+        }
+        else
+        {
+          for(Mod m: this->mods)
+          {
+              if (m.type_field == 1 && m.version <= version)
+              {
+                left = m.left;
+              }
+          }
+          if(this->next != nullptr)
+          {
+            for(Mod m: this->next->mods)
+            {
+                if (m.type_field == 1 && m.version <= version)
+                {
+                  left = m.left;
+                }
+            }
+          }
+          return left;
+        }
+      }
+
+      Node* get_right(int version)
+      {
+        Node* right = this->right;
+        if(this->mods.back().version > version)
+        {
+          for(Mod m: this->mods)
+          {
+              if (m.type_field == 2 && m.version <= version)
+              {
+                right = m.right;
+              }
+          }
+          return right;
+        }
+        else if(this->mods.back().version < version)
+        {
+          return this->next->get_right(version);
+        }
+        else
+        {
+          for(Mod m: this->mods)
+          {
+              if (m.type_field == 2 && m.version <= version)
+              {
+                right = m.right;
+              }
+          }
+          if(this->next != nullptr)
+          {
+            for(Mod m: this->next->mods)
+            {
+                if (m.type_field == 2 && m.version <= version)
+                {
+                  right = m.right;
+                }
+            }
+          }
+          return right;
+        }
+      }
+      
       Node* get_parent() { return parent; }
       Node* get_grandparent() { 
         if(parent == nullptr || parent->parent == nullptr) return nullptr;
@@ -107,7 +187,10 @@ class RedBlackTree {
          
         return mod;
       }
+      COLOR get_color()
+      {
 
+      }
       void modify(int version, int field_type, COLOR color, Node* pointer) {
         int size = this->mods.size();
         if(size == 6) { 
@@ -294,74 +377,94 @@ class RedBlackTree {
 
     // u eh o noh que sai e v eh o noh que vai substituir
     void transplant(Node* removed, Node* substitute) {
-      if(removed->parent == nullptr) {
+      if(removed->parent == nullptr) { //get_parent
         root = substitute;
         create_root(substitute, this->current_version);
       }
       else if(removed->is_left_child()) 
-        removed->parent->left = substitute;
+        //removed->parent->left = substitute;
+        removed->get_parent()->modify(this->current_version, 1, BLACK, substitute);
       else
-        removed->parent->right = substitute;
-      substitute->parent = removed->parent;
+        //removed->parent->right = substitute;
+        removed->get_parent()->modify(this->current_version, 2, BLACK, substitute);
+      //substitute->parent = removed->parent;
+      substitute->modify(this->current_version, 3, BLACK, removed->get_parent());
     }
 
     void remove_fix(Node* node, int version) {
-      while(node->parent != nullptr && node->color == BLACK) {
+      while(node->parent != nullptr && node->color == BLACK) { //get_parent && get_color
         if(node->is_left_child()) {
-          Node* right_child = node->parent->right;
-          if(right_child->color == RED) {
-            right_child->color = BLACK;
-            node->parent->color = RED;
-            left_rotate(node->parent, version);
-            right_child = node->parent->right;
+          Node* right_child = node->parent->right; //get_parent()->get_right
+          if(right_child->color == RED) { // get_color
+            //right_child->color = BLACK;
+            right_child->modify(this->current_version, 0, BLACK, nullptr);
+            //node->parent->color = RED;
+            node->get_parent()->modify(this->current_version, 0, RED, nullptr);
+            left_rotate(node->parent, version); //get_parent
+            right_child = node->parent->right; // get_parent()->get_right
           }
-          if(right_child->left->color == BLACK && right_child->right->color == BLACK) {
-            right_child->color = RED;
-            node = node->parent;
+          if(right_child->left->color == BLACK && right_child->right->color == BLACK) { //get_left()->get_color && get_right()->get_color
+            //right_child->color = RED;
+            right_child->modify(this->current_version, 0, RED, nullptr);
+            node = node->parent; //get_parent
           }
           else {
-            if(right_child->right->color == BLACK) {
-              right_child->left->color = BLACK;
-              right_child->color = RED;
+            if(right_child->right->color == BLACK) { //get_right()->get_color
+              //right_child->left->color = BLACK;
+              right_child->get_left()->modify(this->current_version, 0, BLACK, nullptr);
+              //right_child->color = RED;
+              right_child->modify(this->current_version, 0, RED, nullptr);
               right_rotate(right_child, version);
-              right_child = node->parent->right;
+              right_child = node->parent->right; //get_parent()->get_right
             }
 
-            right_child->color = node->parent->color;
-            node->parent->color = BLACK;
-            right_child->right->color = BLACK;
-            left_rotate(node->parent, version);
+            //right_child->color = node->parent->color;
+            right_child->modify(this->current_version, 0, node->get_parent()->get_color(), nullptr);
+            //node->parent->color = BLACK;
+            node->get_parent()->modify(this->current_version, 0, BLACK, nullptr);
+            //right_child->right->color = BLACK;
+            right_child->get_right()->modify(this->current_version, 0, BLACK, nullptr);
+            left_rotate(node->parent, version); //get_parent
             node = root;
           }
         } else {
-          Node* left_child = node->parent->left;
-          if(left_child->color == RED) {
-            left_child->color = BLACK;
+          Node* left_child = node->parent->left; // get_left
+          if(left_child->color == RED) { //get_color
+            //left_child->color = BLACK;
+            left_child->modify(this->current_version, 0, BLACK, nullptr);
             node->parent->color = RED;
-            right_rotate(node->parent, version);
-            left_child = node->parent->left;
+            node->get_parent()->modify(this->current_version, 0, RED, nullptr);
+            right_rotate(node->parent, version); //get_parent
+            left_child = node->parent->left; //get_parent()->get_left
           }
-          if(left_child->left->color == BLACK && left_child->right->color == BLACK) {
-            left_child->color = RED;
-            node = node->parent;
+          if(left_child->left->color == BLACK && left_child->right->color == BLACK) { //get_left()->get_color && get_right()->get_color
+            //left_child->color = RED;
+            left_child->modify(this->current_version, 0, RED, nullptr);
+            node = node->parent; //get_parent
           }
           else {
-            if(left_child->left->color == BLACK) {
-              left_child->right->color = BLACK;
-              left_child->color = RED;
+            if(left_child->left->color == BLACK) {//get_left()->get_color
+              //left_child->right->color = BLACK;
+              left_child->get_right()->modify(this->current_version, 0, BLACK, nullptr);
+              //left_child->color = RED;
+              left_child->modify(this->current_version, 0, RED, nullptr);
               left_rotate(left_child, version);
-              left_child = node->parent->left;
+              left_child = node->parent->left; //get_parent()->get_left
             }
 
-            left_child->color = node->parent->color;
-            node->parent->color = BLACK;
-            left_child->left->color = BLACK;
-            right_rotate(node->parent, version);
+            //left_child->color = node->parent->color;
+            left_child->modify(this->current_version, 0, node->get_parent()->get_color(), nullptr);
+            //node->parent->color = BLACK;
+            node->get_parent()->modify(this->current_version, 0, BLACK, nullptr);
+            //left_child->left->color = BLACK;
+            left_child->get_left()->modify(this->current_version, 0, BLACK, nullptr);
+            right_rotate(node->parent, version); //get_parent
             node = root;
           }
         }
       }
-      node->color = BLACK;
+      //node->color = BLACK;
+      node->modify(this->current_version, 0, BLACK, nullptr);
     }
 
   public:
@@ -475,27 +578,35 @@ class RedBlackTree {
 
       this->current_version++;
 
-      if(d.node->left->is_null) {
-        aux = d.node->right;
-        transplant(d.node, d.node->right);
-      } else if(d.node->right->is_null) {
-        aux = d.node->left;
-        transplant(d.node, d.node->left);
+      if(d.node->left->is_null) { //get_left
+        aux = d.node->right; //get_right
+        transplant(d.node, d.node->right); //get_right
+      } else if(d.node->right->is_null) { //get_right
+        aux = d.node->left; //get_left
+        transplant(d.node, d.node->left); //get_left
       } else {
         node = d.successor(d.node); 
-        original_color = node->color;
-        aux = node->right;   
-        if(node->parent->value == d.node->value)
-          aux->parent = node;
+        original_color = node->color; // get_color
+        aux = node->right;   //get_right
+        if(node->parent->value == d.node->value) //get_parent
+        {
+          //aux->parent = node;
+          aux->modify(this->current_version, 3, BLACK, node);
+        }
         else {
-          transplant(node, node->right);
-          node->right = d.node->right;
-          node->right->parent = node;
+          transplant(node, node->right); //get_right
+          //node->right = d.node->right;
+          node->modify(this->current_version, 2, BLACK, d.node->get_right());
+          node->get_right()->modify(this->current_version, 3, BLACK, node);
+          //node->right->parent = node;
         }
         transplant(d.node, node);   
-        node->left = d.node->left;
-        node->left->parent = node;
-        node->color = d.node->color;
+        //node->left = d.node->left;
+        node->modify(this->current_version, 1, BLACK, d.node->get_left());
+        //node->left->parent = node;
+        node->get_left()->modify(this->current_version, 3, BLACK, node);
+        //node->color = d.node->color;
+        node->modify(this->current_version, 0, d.node->get_color(), nullptr);
       }
       if(original_color == COLOR::BLACK) 
         remove_fix(aux, this->current_version);
