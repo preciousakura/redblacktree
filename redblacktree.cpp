@@ -331,8 +331,12 @@ class RedBlackTree {
       }
 
       void modify(int version, int field_type, COLOR color, Node* pointer) {
+        if(this->is_null ){return;}
         int size = this->mods.size();
+        bool cloned = false;
+
         if(size == 6) {
+          cloned = true;
           Node* node_copy = new Node(this->value, this->color, this->left, this->right, this->parent);
           for(Mod m : this->mods) {
             switch (m.type_field) {
@@ -350,18 +354,74 @@ class RedBlackTree {
               break;
             }
           }
-
+          node_copy->return_left = this->return_left;
+          node_copy->return_right = this->return_right;
+          node_copy->return_parent = this->return_parent;
           this->next = node_copy;
-          return_left->modify(version, 3, BLACK, this->next);
-          return_right->modify(version, 3, BLACK, this->next);
-          if(this->is_left_child(version)) 
-            return_parent->modify(version, 1, BLACK, this->next);
-          else if(this->is_right_child(version)) 
-            return_parent->modify(version, 2, BLACK, this->next);
+        }
+        
+        Mod mod = this->create_mod(version, field_type, color, pointer);
+        if(!cloned)
+        {
+            this->mods.emplace_back(mod);
         }
 
-        Mod mod = this->create_mod(version, field_type, color, pointer);
-        this->mods.emplace_back(mod);
+        if (field_type != 0)
+        {
+          switch (field_type)
+          {
+          case 1:
+            if (!cloned)
+            {
+              this->return_left = pointer;
+            }
+            else
+            {
+              this->next->return_left = pointer;
+            }
+            break;
+          case 2:
+            if (!cloned)
+            {
+              this->return_right = pointer;
+            }
+            else
+            {
+              this->next->return_right = pointer;
+            }
+            break;
+          case 3:
+            if (!cloned)
+            {
+              this->return_parent = pointer;
+            }
+            else
+            {
+              this->next->return_parent = pointer;
+            }
+            break;
+          }
+        }
+        
+
+
+        if (cloned)
+        {
+          this->next->mods.emplace_back(mod);
+          if (!this->next->return_left->is_null)
+          {
+            this->next->return_left->modify(version, 3, BLACK, this->next);
+          }
+          if (!this->next->return_right->is_null)
+          {
+            this->next->return_right->modify(version, 3, BLACK, this->next);
+          }
+          if(this->next->is_left_child(version)) 
+            this->next->return_parent->modify(version, 1, BLACK, this->next);
+          else if(this->next->is_right_child(version)) 
+            this->next->return_parent->modify(version, 2, BLACK, this->next);
+        }
+
       }
     } Node;
 
@@ -411,7 +471,6 @@ class RedBlackTree {
     void right_rotate(Node* node, int version) {
       Node* aux = node->get_left(version);
       node->modify(version, 1, BLACK, aux->get_right(version));
-
 
       if(!aux->get_right(version)->is_null) 
         aux->get_right(version)->modify(version, 3, BLACK, node);
@@ -607,6 +666,7 @@ class RedBlackTree {
 
   public:
     Node nil;
+  
     RedBlackTree(): root(nullptr) {};
 
     class Data {
@@ -664,14 +724,18 @@ class RedBlackTree {
       node->left->parent = node;
       node->right->parent = node;
 
+      node->return_left = &(this->nil);
+      node->return_right = &(this->nil);
+      node->return_parent = &(this->nil);
+
       if(get_root() == nullptr) {
         node->color = BLACK;
         root = node;
         create_root(node, this->current_version);
       }
       else {
-        Node* aux = get_root();\
-        while(aux != nullptr) {
+        Node* aux = get_root();
+        while(aux != &(this->nil)) {
           if(value > aux->value) {
             if(aux->get_right(this->current_version)->is_null) {
               node->parent = aux;
@@ -766,7 +830,9 @@ int main() {
   rbtree.insert(80);
   rbtree.insert(92);
   rbtree.insert(96);
+  cout << "Aqui\n";
   rbtree.insert(85); //erro
+  cout << "Aqui2\n";
   rbtree.insert(95);
   rbtree.insert(98);
   
