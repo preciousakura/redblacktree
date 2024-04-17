@@ -17,227 +17,118 @@ class RedBlackTree {
 
       bool is_null = true;
 
-      COLOR get_color(int version)
-      {
+      COLOR get_color(int version) {
         COLOR color = this->color;
-        if(this->mods.empty()) {return color;}
-        if(this->mods.back().version > version)
-        {
+        if(this->mods.empty()) { return color; }
+        if(this->mods.back().version > version) {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 0 && m.version <= version)
-              {
-                color = m.color;
-              }
-          }
+            if (m.type_field == 0 && m.version <= version)
+              color = m.color;
           return color;
         }
-        else if(this->mods.back().version < version)
-        {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
-          {
             return this->next->get_color(version);
-          }
-          else
-          {
-            for(Mod m: this->mods)
-            {
-                if (m.type_field == 0)
-                {
-                  color = m.color;
-                }
-            }
-            return color;
-          }
-        }
-        else
-        {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 0 && m.version <= version)
-              {
-                color = m.color;
-              }
-          }
+            if (m.type_field == 0)
+              color = m.color;
+          return color;
+        }
+        else {
+          for(Mod m: this->mods)
+            if (m.type_field == 0 && m.version <= version)
+              color = m.color;
           if(this->next != nullptr)
-          {
             for(Mod m: this->next->mods)
-            {
-                if (m.type_field == 0 && m.version <= version)
-                {
-                  color = m.color;
-                }
-            }
-          }
+              if (m.type_field == 0 && m.version <= version)
+                color = m.color;
           return color;
         }
       }
 
-      Node* get_left(int version)
-      {
+      Node* get_left(int version) {
         Node* left = this->left;
-        if(this->mods.empty()) {return left;}
-        if(this->mods.back().version > version)
-        {
+        if(this->mods.empty()) { return left; }
+        if(this->mods.back().version > version) {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 1 && m.version <= version)
-              {
-                left = m.left;
-              }
-          }
+            if (m.type_field == 1 && m.version <= version)
+              left = m.left;
           return left;
         }
-        else if(this->mods.back().version < version)
-        {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
-          {
             return this->next->get_left(version);
-          }
-          else
-          {
-            for(Mod m: this->mods)
-            {
-                if (m.type_field == 1)
-                {
-                  left = m.left;
-                }
-            }
-            return left;
-          }
-        }
-        else
-        {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 1 && m.version <= version)
-              {
-                left = m.left;
-              }
-          }
-          if(this->next != nullptr)
-          {
-            for(Mod m: this->next->mods)
-            {
-                if (m.type_field == 1 && m.version <= version)
-                {
-                  left = m.left;
-                }
-            }
-          }
+            if (m.type_field == 1)
+              left = m.left;
           return left;
         }
-        
-      }
-
-      Node* get_right(int version)
-      {
-        Node* right = this->right;
-        if(this->mods.empty()) {return right;}
-        if(this->mods.back().version > version)
-        {
+        else {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 2 && m.version <= version)
-              {
-                right = m.right;
-              }
-          }
-          return right;
-        }
-        else if(this->mods.back().version < version)
-        {
-          if (this->next != nullptr)
-          {
-            return this->next->get_right(version);
-          }
-          else
-          {
-            for(Mod m: this->mods)
-            {
-                if (m.type_field == 2)
-                {
-                  right = m.right;
-                }
-            }
-            return right;
-          }
-        }
-        else
-        {
-          for(Mod m: this->mods)
-          {
-              if (m.type_field == 2 && m.version <= version)
-              {
-                right = m.right;
-              }
-          }
+            if (m.type_field == 1 && m.version <= version)
+              left = m.left;
           if(this->next != nullptr)
-          {
             for(Mod m: this->next->mods)
-            {
-                if (m.type_field == 2 && m.version <= version)
-                {
-                  right = m.right;
-                }
-            }
-          }
+              if (m.type_field == 1 && m.version <= version)
+                left = m.left;       
+          return left;
+        }
+      }
+
+      Node* get_right(int version) {
+        Node* right = this->right;
+        if(this->mods.empty()) { return right; }
+        if(this->mods.back().version > version) {
+          for(Mod m: this->mods)
+            if (m.type_field == 2 && m.version <= version)
+              right = m.right;
+          return right;
+        }
+        else if(this->mods.back().version < version) {
+          if (this->next != nullptr)
+            return this->next->get_right(version);
+          for(Mod m: this->mods)
+            if (m.type_field == 2)
+              right = m.right;
+          return right;
+        }
+        else {
+          for(Mod m: this->mods)
+            if (m.type_field == 2 && m.version <= version)
+              right = m.right;
+          if(this->next != nullptr)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 2 && m.version <= version)
+                right = m.right;
           return right;
         }
       }
 
-      Node* get_parent(int version) 
-      {
+      Node* get_parent(int version) {
         Node* parent = this->parent;
-        if(this->mods.empty()) {return parent;}
-        if(this->mods.back().version > version)
-        {
+        if(this->mods.empty()) { return parent; }
+        if(this->mods.back().version > version) {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 3 && m.version <= version)
-              {
-                parent = m.parent;
-              }
-          }
+            if (m.type_field == 3 && m.version <= version)
+              parent = m.parent;
           return parent;
         }
-        else if(this->mods.back().version < version)
-        {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
-          {
             return this->next->get_parent(version);
-          }
-          else
-          {
-            for(Mod m: this->mods)
-            {
-                if (m.type_field == 3)
-                {
-                  parent = m.parent;
-                }
-            }
-            return parent;
-          }
-        }
-        else
-        {
           for(Mod m: this->mods)
-          {
-              if (m.type_field == 3 && m.version <= version)
-              {
+            if (m.type_field == 3)
+              parent = m.parent;
+          return parent;
+        }
+        else {
+          for(Mod m: this->mods)
+            if (m.type_field == 3 && m.version <= version)
                 parent = m.parent;
-              }
-          }
           if(this->next != nullptr)
-          {
             for(Mod m: this->next->mods)
-            {
-                if (m.type_field == 3 && m.version <= version)
-                {
-                  parent = m.parent;
-                }
-            }
-          }
+              if (m.type_field == 3 && m.version <= version)
+                parent = m.parent;
           return parent;
         }
       }
@@ -271,26 +162,6 @@ class RedBlackTree {
         int version;
 
         int type_field;
-        bool is_same_field(COLOR value, int field) {
-          return field == type_field && value == color;
-        }
-
-        bool is_same_field(Node* value, int field) {
-          switch (field) {
-            case 1:
-              return field == type_field && value == left;
-              break;
-
-            case 2:
-              return field == type_field && value == right;
-              break;
-
-            case 3:
-              return field == type_field && value == parent;
-              break;
-          }
-        }
-
       } Mod;
 
       vector<Mod> mods;
@@ -303,7 +174,7 @@ class RedBlackTree {
       Node* return_right;
       Node* return_parent;
       
-      Node* next; // prox mods;
+      Node* next;
 
       Mod create_mod(int version, int field, COLOR color, Node* pointer) {
         Mod mod = { this->left, this->right, this->parent, this->color, version, field };
@@ -331,7 +202,7 @@ class RedBlackTree {
       }
 
       void modify(int version, int field_type, COLOR color, Node* pointer) {
-        if(this->is_null ){return;}
+        if(this == nullptr || this->is_null) return;
         int size = this->mods.size();
         bool cloned = false;
 
@@ -362,23 +233,15 @@ class RedBlackTree {
         
         Mod mod = this->create_mod(version, field_type, color, pointer);
         if(!cloned)
-        {
-            this->mods.emplace_back(mod);
-        }
-
-        if (field_type != 0)
-        {
-          switch (field_type)
-          {
+          this->mods.emplace_back(mod);
+      
+        if (field_type != 0) {
+          switch (field_type) {
           case 1:
             if (!cloned)
-            {
               this->return_left = pointer;
-            }
             else
-            {
               this->next->return_left = pointer;
-            }
             break;
           case 2:
             if (!cloned)
@@ -579,12 +442,9 @@ class RedBlackTree {
         create_root(substitute, this->current_version);
       }
       else if(removed->is_left_child(version)) 
-        //removed->parent->left = substitute;
         removed->get_parent(version)->modify(this->current_version, 1, BLACK, substitute);
       else
-        //removed->parent->right = substitute;
         removed->get_parent(version)->modify(this->current_version, 2, BLACK, substitute);
-      //substitute->parent = removed->parent;
       substitute->modify(this->current_version, 3, BLACK, removed->get_parent(version));
     }
 
@@ -593,33 +453,25 @@ class RedBlackTree {
         if(node->is_left_child(version)) {
           Node* right_child = node->get_parent(version)->get_right(version);
           if(right_child->get_color(version) == RED) {
-            //right_child->color = BLACK;
             right_child->modify(this->current_version, 0, BLACK, nullptr);
-            //node->parent->color = RED;
             node->get_parent(version)->modify(this->current_version, 0, RED, nullptr);
             left_rotate(node->get_parent(version), version);
             right_child = node->get_parent(version)->get_right(version);
           }
           if(right_child->get_left(version)->get_color(version) == BLACK && right_child->get_right(version)->get_color(version) == BLACK) {
-            //right_child->color = RED;
             right_child->modify(this->current_version, 0, RED, nullptr);
             node = node->get_parent(version); //get_parent
           }
           else {
             if(right_child->get_right(version)->get_color(version) == BLACK) {
-              //right_child->left->color = BLACK;
               right_child->get_left(version)->modify(this->current_version, 0, BLACK, nullptr);
-              //right_child->color = RED;
               right_child->modify(this->current_version, 0, RED, nullptr);
               right_rotate(right_child, version);
               right_child = node->get_parent(version)->get_right(version);
             }
 
-            //right_child->color = node->parent->color;
             right_child->modify(this->current_version, 0, node->get_parent(version)->get_color(version), nullptr);
-            //node->parent->color = BLACK;
             node->get_parent(version)->modify(this->current_version, 0, BLACK, nullptr);
-            //right_child->right->color = BLACK;
             right_child->get_right(version)->modify(this->current_version, 0, BLACK, nullptr);
             left_rotate(node->get_parent(version), version);
             node = root; // ????
@@ -627,40 +479,31 @@ class RedBlackTree {
         } else {
           Node* left_child = node->get_parent(version)->get_left(version);
           if(left_child->get_color(version) == RED) {
-            //left_child->color = BLACK;
             left_child->modify(this->current_version, 0, BLACK, nullptr);
-            //node->parent->color = RED;
             node->get_parent(version)->modify(this->current_version, 0, RED, nullptr);
             right_rotate(node->get_parent(version), version);
             left_child = node->get_parent(version)->get_left(version);
           }
           if(left_child->get_left(version)->get_color(version) == BLACK && left_child->get_right(version)->get_color(version) == BLACK) {
-            //left_child->color = RED;
             left_child->modify(this->current_version, 0, RED, nullptr);
             node = node->get_parent(version); //get_parent
           }
           else {
             if(left_child->get_left(version)->get_color(version) == BLACK) {
-              //left_child->right->color = BLACK;
               left_child->get_right(version)->modify(this->current_version, 0, BLACK, nullptr);
-              //left_child->color = RED;
               left_child->modify(this->current_version, 0, RED, nullptr);
               left_rotate(left_child, version);
               left_child = node->get_parent(version)->get_left(version); //get_parent()->get_left
             }
 
-            //left_child->color = node->parent->color;
             left_child->modify(this->current_version, 0, node->get_parent(version)->get_color(version), nullptr);
-            //node->parent->color = BLACK;
             node->get_parent(version)->modify(this->current_version, 0, BLACK, nullptr);
-            //left_child->left->color = BLACK;
             left_child->get_left(version)->modify(this->current_version, 0, BLACK, nullptr);
             right_rotate(node->parent, version); //get_parent
             node = root;
           }
         }
       }
-      //node->color = BLACK;
       node->modify(this->current_version, 0, BLACK, nullptr);
     }
 
@@ -689,9 +532,7 @@ class RedBlackTree {
           else // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
           {
             while((n->value != n->parent->left->value) && (n->parent != nullptr))
-            {
               n = n->parent;
-            }
             return n->parent; // Caso n não tenha sucessor, irá retornar nullptr
           }
         }
@@ -774,8 +615,8 @@ class RedBlackTree {
     }
 
     void remove(Data d) {
-      Node* node = d.node; // y
-      COLOR original_color = node->color; // original color of y
+      Node* node = d.node;
+      COLOR original_color = node->color; 
       Node* aux;
 
       this->current_version++;
@@ -790,24 +631,17 @@ class RedBlackTree {
         node = d.successor(d.node); 
         original_color = node->get_color(this->current_version);
         aux = node->get_right(this->current_version);
+
         if(node->get_parent(this->current_version)->value == d.node->value)
-        {
-          //aux->parent = node;
           aux->modify(this->current_version, 3, BLACK, node);
-        }
         else {
           transplant(node, node->get_right(this->current_version), this->current_version);
-          //node->right = d.node->right;
           node->modify(this->current_version, 2, BLACK, d.node->get_right(this->current_version));
           node->get_right(this->current_version)->modify(this->current_version, 3, BLACK, node);
-          //node->right->parent = node;
         }
         transplant(d.node, node, this->current_version);   
-        //node->left = d.node->left;
         node->modify(this->current_version, 1, BLACK, d.node->get_left(this->current_version));
-        //node->left->parent = node;
         node->get_left(this->current_version)->modify(this->current_version, 3, BLACK, node);
-        //node->color = d.node->color;
         node->modify(this->current_version, 0, d.node->get_color(this->current_version), nullptr);
       }
       if(original_color == COLOR::BLACK) 
@@ -816,9 +650,7 @@ class RedBlackTree {
 };
 
 int main() {
-
   RedBlackTree rbtree; 
-
   rbtree.insert(70);
   rbtree.insert(45);
   rbtree.insert(90);
@@ -830,9 +662,7 @@ int main() {
   rbtree.insert(80);
   rbtree.insert(92);
   rbtree.insert(96);
-  cout << "Aqui\n";
-  rbtree.insert(85); //erro
-  cout << "Aqui2\n";
+  rbtree.insert(85); 
   rbtree.insert(95);
   rbtree.insert(98);
   
