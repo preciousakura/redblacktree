@@ -197,7 +197,7 @@ class RedBlackTree {
             this->return_parent = pointer;
             break;
         }
-         
+        
         return mod;
       }
 
@@ -223,6 +223,7 @@ class RedBlackTree {
               break;
             }
           }
+
           switch (field_type)
           {
           case 0:
@@ -239,9 +240,9 @@ class RedBlackTree {
             break;
           }
 
-          node_copy->return_left = this->left;
-          node_copy->return_right = this->right;
-          node_copy->return_parent = this->parent;
+          node_copy->return_left = node_copy->left;
+          node_copy->return_right = node_copy->right;
+          node_copy->return_parent = node_copy->parent;
 
           this->next = node_copy;
 
@@ -261,23 +262,8 @@ class RedBlackTree {
         }
         
         Mod mod = this->create_mod(version, field_type, color, pointer);
-
         this->mods.emplace_back(mod);
-        if (field_type != 0)
-        {
-          switch (field_type)
-          {
-          case 1:
-            this->return_left = pointer;
-            break;
-          case 2:
-            this->return_right = pointer;
-            break;
-          case 3:
-            this->return_parent = pointer;
-            break;
-          }
-        }
+  
       }
     } Node;
 
@@ -307,21 +293,21 @@ class RedBlackTree {
       return root;
     }
 
-    void print_helper(Node* node) {
+    void print_helper(Node* node, int version) {
       if(node->is_null) return;
 
-      cout << "value: " << node->value << " color: " << node->color << ' ';
-      if(!node->left->is_null)
-       cout << "left child: " << node->left->value << ' ';
+      cout << "value: " << node->value << " color: " << node->get_color(version) << ' ';
+      if(!node->get_left(version)->is_null)
+       cout << "left child: " << node->get_left(version)->value << ' ';
       else
        cout << "left child: " << "null" << ' ';
-      if(!node->right->is_null)
-       cout << "right child: " << node->right->value << endl;
+      if(!node->get_right(version)->is_null)
+       cout << "right child: " << node->get_right(version)->value << endl;
       else
        cout << "right child: " << "null" << endl;
       
-      print_helper(node->left);
-      print_helper(node->right);
+      print_helper(node->get_left(version), version);
+      print_helper(node->get_right(version), version);
     }
 
     void right_rotate(Node* node, int version) {
@@ -504,7 +490,6 @@ class RedBlackTree {
     Node nil;
   
     RedBlackTree(): root(nullptr) {};
-
     class Data {
       private:
         Node* node;
@@ -534,11 +519,16 @@ class RedBlackTree {
         int value() { return node->value; }
     };
 
+    int get_current_version()
+    {
+      return this->current_version;
+    }
+
     Data null() { Data d(nullptr); return d; }
 
     void print() {
-      Node* node = get_root();
-      print_helper(node);
+      Node* node = get_root(this->current_version);
+      print_helper(node, this->current_version);
     }
   
     Data insert(int value) {
@@ -659,7 +649,9 @@ int main() {
   rbtree.insert(95);
   rbtree.insert(98);
   
-  auto s = rbtree.search(80, 1);
+  int last_version = rbtree.get_current_version();
+
+  auto s = rbtree.search(98, last_version);
   if(s != rbtree.null()) rbtree.remove(s);
   rbtree.print();
 
