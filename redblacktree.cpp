@@ -204,10 +204,8 @@ class RedBlackTree {
       void modify(int version, int field_type, COLOR color, Node* pointer) {
         if(this == nullptr || this->is_null) return;
         int size = this->mods.size();
-        bool cloned = false;
 
         if(size == 6) {
-          cloned = true;
           Node* node_copy = new Node(this->value, this->color, this->left, this->right, this->parent);
           for(Mod m : this->mods) {
             switch (m.type_field) {
@@ -225,52 +223,28 @@ class RedBlackTree {
               break;
             }
           }
-          node_copy->return_left = this->return_left;
-          node_copy->return_right = this->return_right;
-          node_copy->return_parent = this->return_parent;
-          this->next = node_copy;
-        }
-        
-        Mod mod = this->create_mod(version, field_type, color, pointer);
-        if(!cloned)
-          this->mods.emplace_back(mod);
-      
-        if (field_type != 0) {
-          switch (field_type) {
+          switch (field_type)
+          {
+          case 0:
+            node_copy->color = color;
+            break;
           case 1:
-            if (!cloned)
-              this->return_left = pointer;
-            else
-              this->next->return_left = pointer;
+            node_copy->left = pointer;
             break;
           case 2:
-            if (!cloned)
-            {
-              this->return_right = pointer;
-            }
-            else
-            {
-              this->next->return_right = pointer;
-            }
+            node_copy->right = pointer;
             break;
           case 3:
-            if (!cloned)
-            {
-              this->return_parent = pointer;
-            }
-            else
-            {
-              this->next->return_parent = pointer;
-            }
+            node_copy->parent = pointer;
             break;
           }
-        }
-        
 
+          node_copy->return_left = this->left;
+          node_copy->return_right = this->right;
+          node_copy->return_parent = this->parent;
 
-        if (cloned)
-        {
-          this->next->mods.emplace_back(mod);
+          this->next = node_copy;
+
           if (!this->next->return_left->is_null)
           {
             this->next->return_left->modify(version, 3, BLACK, this->next);
@@ -283,8 +257,27 @@ class RedBlackTree {
             this->next->return_parent->modify(version, 1, BLACK, this->next);
           else if(this->next->is_right_child(version)) 
             this->next->return_parent->modify(version, 2, BLACK, this->next);
+          return;
         }
+        
+        Mod mod = this->create_mod(version, field_type, color, pointer);
 
+        this->mods.emplace_back(mod);
+        if (field_type != 0)
+        {
+          switch (field_type)
+          {
+          case 1:
+            this->return_left = pointer;
+            break;
+          case 2:
+            this->return_right = pointer;
+            break;
+          case 3:
+            this->return_parent = pointer;
+            break;
+          }
+        }
       }
     } Node;
 
