@@ -338,7 +338,7 @@ class RedBlackTree {
       aux->modify(version, 3, BLACK, node->get_parent(version));
 
       if(node->get_parent(version) == nullptr) {
-        create_root(aux, this->current_version);
+        create_root(aux, version);
       }
       else if(node->is_left_child(version)) 
         node->get_parent(version)->modify(version, 1, BLACK, aux);
@@ -563,6 +563,7 @@ class RedBlackTree {
           if(value > aux->value) {
             if(aux->get_right(this->current_version)->is_null) {
               node->parent = aux;
+              node->return_parent = aux;
               aux->modify(this->current_version, 2, BLACK, node);
 
               break;
@@ -571,6 +572,7 @@ class RedBlackTree {
           } else {
             if(aux->get_left(this->current_version)->is_null) {
               node->parent = aux;
+              node->return_parent = aux;
               aux->modify(this->current_version, 1, BLACK, node);
 
               break;
@@ -646,12 +648,12 @@ int main() {
   rbtree.insert(92);
   rbtree.insert(96);
   rbtree.insert(85); 
-  rbtree.insert(95);
-  rbtree.insert(98);
+  // rbtree.insert(95);
+  // rbtree.insert(98);
   
   int last_version = rbtree.get_current_version();
 
-  auto s = rbtree.search(98, last_version);
+  auto s = rbtree.search(70, last_version);
   //if(s != rbtree.null()) rbtree.remove(s);
   rbtree.print();
 
