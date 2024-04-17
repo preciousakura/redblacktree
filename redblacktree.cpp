@@ -287,11 +287,11 @@ class RedBlackTree {
       return root;
     }
 
-    Node* get_root() { 
-      if(root == nullptr) 
-        return nullptr;
-      return root;
-    }
+    // Node* get_root() { 
+    //   if(root == nullptr) 
+    //     return nullptr;
+    //   return root;
+    // }
 
     void print_helper(Node* node, int version) {
       if(node->is_null) return;
@@ -552,13 +552,13 @@ class RedBlackTree {
       node->return_right = &(this->nil);
       node->return_parent = &(this->nil);
 
-      if(get_root() == nullptr) {
+      if(get_root(this->current_version) == nullptr) {
         node->color = BLACK;
         root = node;
         create_root(node, this->current_version);
       }
       else {
-        Node* aux = get_root();
+        Node* aux = get_root(this->current_version);
         while(aux != &(this->nil)) {
           if(value > aux->value) {
             if(aux->get_right(this->current_version)->is_null) {
@@ -586,7 +586,7 @@ class RedBlackTree {
     }
 
     Data search(int value) {
-      Node* node = search_helper(get_root(), value);
+      Node* node = search_helper(get_root(this->current_version), value);
       Data d(node);
       return d;
     }
@@ -652,7 +652,7 @@ int main() {
   int last_version = rbtree.get_current_version();
 
   auto s = rbtree.search(98, last_version);
-  if(s != rbtree.null()) rbtree.remove(s);
+  //if(s != rbtree.null()) rbtree.remove(s);
   rbtree.print();
 
   return 0;
