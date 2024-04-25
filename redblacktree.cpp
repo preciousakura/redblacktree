@@ -321,6 +321,8 @@ class RedBlackTree {
       print_to_file_helper(node->get_right(version), version, file, depth);
     }
 
+  
+
     void right_rotate(Node* node, int version) {
       Node* aux = node->get_left(version);
       node->modify(version, 1, BLACK, aux->get_right(version));
@@ -498,7 +500,8 @@ class RedBlackTree {
             return n;
           }
           else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-            while((n->value != n->get_parent(version)->get_left(version)->value) && (!n->get_parent(version)->is_null))
+            while((!n->get_parent(version)->is_null) && (n->value != n->get_parent(version)->get_left(version)->value))
+
               n = n->get_parent(version);
             
             return n->get_parent(version); // Caso n não tenha sucessor, irá retornar nullptr
@@ -530,9 +533,51 @@ class RedBlackTree {
       print_helper(d.node, version);
     }
 
+    // void print_to_file(int version, ofstream& file) {
+    //   Node* node = get_root(version);
+    //   print_to_file_helper(node, version, file, 0);
+    // }
+
     void print_to_file(int version, ofstream& file) {
+      int depth = 0;
       Node* node = get_root(version);
-      print_to_file_helper(node, version, file, 0);
+      while(!node->get_left(version)->is_null)
+        node = node->get_left(version);
+        depth++;
+      
+      bool has_succ = true;
+      while(has_succ) //
+      {
+        char c;
+        if(node->get_color(version)) c = 'R';
+        else c = 'B';
+
+        file << node->value << ',' << depth << ',' << c << ' ';
+
+        if (!node->get_right(version)->is_null) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
+            node = node->get_right(version);
+            depth++;
+            while(!node->get_left(version)->is_null)
+            depth++;
+              node = node->get_left(version);
+        }
+        else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
+          while((node->value != node->get_parent(version)->get_left(version)->value) && (!node->get_parent(version)->is_null))
+            node = node->get_parent(version);
+            depth--;
+          if (node->get_parent(version)->is_null)
+          {
+            has_succ = false;
+          }
+          else
+          {
+            node = node->get_parent(version);
+            depth--;
+          }
+            
+        }
+      }
+
     }
   
     Data insert(int value) {
@@ -643,7 +688,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("exemplo3.txt");
+  ifstream file("in.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
