@@ -498,9 +498,11 @@ class RedBlackTree {
             return n;
           }
           else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-            while((n->value != n->get_parent(version)->get_left(version)->value) && (n->get_parent(version) != nullptr))
+            while((n->value != n->get_parent(version)->get_left(version)->value) && (!n->get_parent(version)->is_null))
               n = n->get_parent(version);
+            
             return n->get_parent(version); // Caso n não tenha sucessor, irá retornar nullptr
+
           }
         }
 
@@ -599,7 +601,7 @@ class RedBlackTree {
       Data d = search(value, version);
       Node* node = d.successor(d.node, version);
       if(node->is_null) return INFINITY;
-      return value;
+      return node->value;
     }
 
     void remove(int value) {
