@@ -1,6 +1,10 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <string.h>
+#define INFINITY 999999999;
 
 using namespace std;
 
@@ -19,7 +23,7 @@ class RedBlackTree {
 
       COLOR get_color(int version) {
         COLOR color = this->color;
-        if(this->mods.empty()) { return color; }
+        if(this->mods.empty()) return color; 
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 0 && m.version <= version)
@@ -48,7 +52,7 @@ class RedBlackTree {
 
       Node* get_left(int version) {
         Node* left = this->left;
-        if(this->mods.empty()) { return left; }
+        if(this->mods.empty()) return left; 
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 1 && m.version <= version)
@@ -77,7 +81,7 @@ class RedBlackTree {
 
       Node* get_right(int version) {
         Node* right = this->right;
-        if(this->mods.empty()) { return right; }
+        if(this->mods.empty()) return right; 
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 2 && m.version <= version)
@@ -106,7 +110,7 @@ class RedBlackTree {
 
       Node* get_parent(int version) {
         Node* parent = this->parent;
-        if(this->mods.empty()) { return parent; }
+        if(this->mods.empty()) return parent; 
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 3 && m.version <= version)
@@ -302,6 +306,21 @@ class RedBlackTree {
       print_helper(node->get_right(version), version);
     }
 
+    void print_to_file_helper(Node* node, int version, ofstream& file, int depth) {
+      if(node->is_null) return;
+
+      char c;
+      if(node->color) c = 'R';
+      else c = 'B';
+
+      file << node->value << ',' << depth << ',' << c << ' '; 
+      
+      depth++;
+      
+      print_to_file_helper(node->get_left(version), version, file, depth);
+      print_to_file_helper(node->get_right(version), version, file, depth);
+    }
+
     void right_rotate(Node* node, int version) {
       Node* aux = node->get_left(version);
       node->modify(version, 1, BLACK, aux->get_right(version));
@@ -383,26 +402,8 @@ class RedBlackTree {
 
     Node* search_helper(Node* node, int value, int version) {
       if(node->is_null) return nullptr;
-      if(node->value > value) {
-        for(Node::Mod m : node->mods) {
-          if(m.version > version) return search_helper(node->left, value);
-          else if(m.type_field == 1) node->left = m.left;
-        }
-      }
-      else if(node->value < value) {
-        for(Node::Mod m : node->mods) {
-          if(m.version > version) return search_helper(node->right, value);
-          else if(m.type_field == 2) node->right = m.right;
-        }
-      }
-      
-      return node;
-    }
-
-    Node* search_helper(Node* node, int value) {
-      if(node->is_null) return nullptr;
-      if(node->value > value) return search_helper(node->left, value);
-      else if(node->value < value) return search_helper(node->right, value);
+      if(node->value > value) return search_helper(node->get_left(version), value, version);
+      else if(node->value < value) return search_helper(node->get_right(version), value, version);
       return node;
     }
 
@@ -489,21 +490,17 @@ class RedBlackTree {
       public:
         bool operator == (Data d) { return node == d.node; }
         bool operator != (Data d) { return node != d.node; }
-        void operator ++ () { node = successor(node); }
-
-        Node* successor(Node* n) {
-          if (!n->right->is_null) // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
-          {
-            n = n->right;
-            while(!n->left->is_null)
-              n = n->left;
+        Node* successor(Node* n, int version) {
+          if (!n->get_right(version)->is_null) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
+            n = n->get_right(version);
+            while(!n->get_left(version)->is_null)
+              n = n->get_left(version);
             return n;
           }
-          else // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-          {
-            while((n->value != n->parent->left->value) && (n->parent != nullptr))
-              n = n->parent;
-            return n->parent; // Caso n não tenha sucessor, irá retornar nullptr
+          else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
+            while((n->value != n->get_parent(version)->get_left(version)->value) && (n->get_parent(version) != nullptr))
+              n = n->get_parent(version);
+            return n->get_parent(version); // Caso n não tenha sucessor, irá retornar nullptr
           }
         }
 
@@ -511,7 +508,7 @@ class RedBlackTree {
         int value() { return node->value; }
     };
 
-    int get_current_version() {
+    int get_last_version() {
       return this->current_version;
     }
 
@@ -522,8 +519,18 @@ class RedBlackTree {
       print_helper(node, this->current_version);
     }
 
-    void print(Data d) {
-      print_helper(d.node, this->current_version);
+    void print(int version) {
+      Node* node = get_root(version);
+      print_helper(node, version);
+    }
+
+    void print(Data d, int version) {
+      print_helper(d.node, version);
+    }
+
+    void print_to_file(int version, ofstream& file) {
+      Node* node = get_root(version);
+      print_to_file_helper(node, version, file, 0);
     }
   
     Data insert(int value) {
@@ -582,19 +589,22 @@ class RedBlackTree {
       return d;
     }
 
-    Data search(int value) {
-      Node* node = search_helper(get_root(this->current_version), value);
-      Data d(node);
-      return d;
-    }
-
     Data search(int value, int version) {      
       Node* node = search_helper(get_root(version), value, version);
       Data d(node);
       return d;
     }
 
-    void remove(Data d) {
+    int get_successor(int value, int version) {
+      Data d = search(value, version);
+      Node* node = d.successor(d.node, version);
+      if(node->is_null) return INFINITY;
+      return value;
+    }
+
+    void remove(int value) {
+      Data d = search(value, this->current_version);
+
       Node* node = d.node;
       COLOR original_color = node->color; 
       Node* aux;
@@ -608,7 +618,7 @@ class RedBlackTree {
         aux = d.node->get_left(this->current_version);
         transplant(d.node, d.node->get_left(this->current_version), this->current_version);
       } else {
-        node = d.successor(d.node); 
+        node = d.successor(d.node, this->current_version); 
         original_color = node->get_color(this->current_version);
         aux = node->get_right(this->current_version);
 
@@ -631,27 +641,46 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  rbtree.insert(70);
-  rbtree.insert(45);
-  rbtree.insert(90);
-  rbtree.insert(11);
-  rbtree.insert(50);
-  rbtree.insert(78);
-  rbtree.insert(94);
-  rbtree.insert(77);
-  rbtree.insert(80);
-  rbtree.insert(92);
-  rbtree.insert(96);
-  rbtree.insert(85); // troca de raiz
-  rbtree.insert(95);
-  rbtree.insert(98);
-  
-  int last_version = rbtree.get_current_version();
+  ifstream file("exemplo3.txt");
+  ofstream output_file("out.txt");
 
-  auto s = rbtree.search(70, last_version);
-  rbtree.remove(s);
-  rbtree.print();
+  if (file.is_open() && output_file.is_open()) {    
+    string line;
+    while (getline(file, line)) {
+      istringstream iss(line); 
+      string command; 
+      iss >> command; 
+      if (command == "INC") {
+        int number;
+        iss >> number;
+        cout << "INC " << number << endl;
+        rbtree.insert(number);
+      }
+      else if(command == "REM"){
+        int number;
+        iss >> number;
+        cout << "REM "<<number<<endl;
+        rbtree.remove(number);
+      }
+      else if (command == "SUC"){
+        int number;
+        int version;
+        iss >> number >> version;
+        cout << "SUC " << number << " " << version << endl;
+        output_file << "SUC " << number << " " << version << endl << rbtree.get_successor(number, version) << endl;
+      }
+      else if(command == "IMP") {
+        int version;
+        iss >> version;
+        cout << "IMP " << version << endl;
+        output_file << "IMP " << version << endl;
 
+        rbtree.print_to_file(version, output_file);
+      }
+    }
+    file.close();
+    output_file.close();
+  }
 
   return 0;
 }
