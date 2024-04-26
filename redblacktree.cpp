@@ -537,6 +537,7 @@ class RedBlackTree {
     // }
 
     void print_to_file(int version, ofstream& file) {
+      version = this->current_version < version ? this->current_version : version;
       int depth = 0;
       Node* node = get_root(version);
       while(!node->get_left(version)->is_null)
@@ -643,6 +644,7 @@ class RedBlackTree {
     int get_successor(int value, int version) {
       Data d = search(value, version);
       Node* node = d.successor(d.node, version);
+      version = this->current_version < version ? this->current_version : version;
       if(node == nullptr) return INFINITY;
       return node->value;
     }
