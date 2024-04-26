@@ -306,21 +306,6 @@ class RedBlackTree {
       print_helper(node->get_right(version), version);
     }
 
-    void print_to_file_helper(Node* node, int version, ofstream& file, int depth) {
-      if(node->is_null) return;
-
-      char c;
-      if(node->color) c = 'R';
-      else c = 'B';
-
-      file << node->value << ',' << depth << ',' << c << ' '; 
-      
-      depth++;
-      
-      print_to_file_helper(node->get_left(version), version, file, depth);
-      print_to_file_helper(node->get_right(version), version, file, depth);
-    }
-
     void right_rotate(Node* node, int version) {
       Node* aux = node->get_left(version);
       node->modify(version, 1, BLACK, aux->get_right(version));
