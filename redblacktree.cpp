@@ -721,9 +721,10 @@ int main() {
         output_file << "IMP " << version << endl;
 
         rbtree.print_to_file(version, output_file);
-        rbtree.print(11);
+        rbtree.print(version);
       }
     }
+
     file.close();
     output_file.close();
   }
