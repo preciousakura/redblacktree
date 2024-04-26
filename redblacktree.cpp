@@ -321,8 +321,6 @@ class RedBlackTree {
       print_to_file_helper(node->get_right(version), version, file, depth);
     }
 
-  
-
     void right_rotate(Node* node, int version) {
       Node* aux = node->get_left(version);
       node->modify(version, 1, BLACK, aux->get_right(version));
@@ -500,7 +498,7 @@ class RedBlackTree {
             return n;
           }
           else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-            while((!n->get_parent(version)->is_null) && (n->value != n->get_parent(version)->get_left(version)->value))
+            while((n->get_parent(version) != nullptr) && (n->value != n->get_parent(version)->get_left(version)->value))
 
               n = n->get_parent(version);
             
@@ -542,8 +540,10 @@ class RedBlackTree {
       int depth = 0;
       Node* node = get_root(version);
       while(!node->get_left(version)->is_null)
+      {
         node = node->get_left(version);
         depth++;
+      }
       
       bool has_succ = true;
       while(has_succ) //
@@ -551,33 +551,31 @@ class RedBlackTree {
         char c;
         if(node->get_color(version)) c = 'R';
         else c = 'B';
-
         file << node->value << ',' << depth << ',' << c << ' ';
-
+        
         if (!node->get_right(version)->is_null) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
             node = node->get_right(version);
             depth++;
             while(!node->get_left(version)->is_null)
-            depth++;
+            {
+              depth++;
               node = node->get_left(version);
+            }
         }
         else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-          while((node->value != node->get_parent(version)->get_left(version)->value) && (!node->get_parent(version)->is_null))
+          while((node->get_parent(version) != nullptr) && (node->value != node->get_parent(version)->get_left(version)->value))
+          {  
             node = node->get_parent(version);
             depth--;
-          if (node->get_parent(version)->is_null)
+          }  
+          node = node->get_parent(version);
+          depth--;
+          if (node == nullptr)
           {
             has_succ = false;
           }
-          else
-          {
-            node = node->get_parent(version);
-            depth--;
-          }
-            
         }
       }
-
     }
   
     Data insert(int value) {
@@ -645,7 +643,7 @@ class RedBlackTree {
     int get_successor(int value, int version) {
       Data d = search(value, version);
       Node* node = d.successor(d.node, version);
-      if(node->is_null) return INFINITY;
+      if(node == nullptr) return INFINITY;
       return node->value;
     }
 
@@ -723,6 +721,7 @@ int main() {
         output_file << "IMP " << version << endl;
 
         rbtree.print_to_file(version, output_file);
+        rbtree.print(11);
       }
     }
     file.close();
