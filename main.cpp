@@ -21,8 +21,6 @@ class RedBlackTree {
 
       bool is_null = true;
 
-      bool is_node_null() { return this == nullptr || (this != nullptr && this->is_null); }
-
       COLOR get_color(int version) {
         COLOR color = this->color;
         if(this->mods.empty()) return color; 
@@ -53,7 +51,6 @@ class RedBlackTree {
       }
 
       Node* get_left(int version) {
-        if(this == nullptr) return nullptr;
         Node* left = this->left;
         if(this->mods.empty()) return left; 
         if(this->mods.back().version > version) {
@@ -83,7 +80,6 @@ class RedBlackTree {
       }
 
       Node* get_right(int version) {
-        if(this == nullptr) return nullptr;
         Node* right = this->right;
         if(this->mods.empty()) return right; 
         if(this->mods.back().version > version) {
@@ -113,7 +109,6 @@ class RedBlackTree {
       }
 
       Node* get_parent(int version) {
-        if(this == nullptr) return nullptr;
         Node* parent = this->parent;
         if(this->mods.empty()) return parent; 
         if(this->mods.back().version > version) {
@@ -155,12 +150,12 @@ class RedBlackTree {
 
       int is_left_child(int version) { 
         if(this->get_parent(version) == nullptr) return -1;
-        return this == this->get_parent(version)->get_left(version);
+        return this->value == this->get_parent(version)->get_left(version)->value;
       }
 
       int is_right_child(int version) { 
         if(this->get_parent(version) == nullptr) return -1;
-        return this == this->get_parent(version)->get_right(version);
+        return this->value == this->get_parent(version)->get_right(version)->value;
       }
 
       typedef struct Mod {
@@ -212,13 +207,18 @@ class RedBlackTree {
 
       void modify(int version, int field_type, COLOR color, Node* pointer) {
         if(this == nullptr || this->is_null) return;
-        int size = this->mods.size();
+        Node* node = this;
+
+        while(node->next !=  nullptr)
+          node = node->next;
+
+        int size = node->mods.size();
 
         if(size == 6) {
-          Node* node_copy = new Node(this->value, this->color, this->left, this->right, this->parent);
+          Node* node_copy = new Node(node->value, node->color, node->left, node->right, node->parent);
           node_copy->is_null = false;
           
-          for(Mod m : this->mods) {
+          for(Mod m : node->mods) {
             switch (m.type_field) {
               case 0:
                 node_copy->color = m.color;
@@ -253,25 +253,25 @@ class RedBlackTree {
           node_copy->return_left = node_copy->left;
           node_copy->return_right = node_copy->right;
           node_copy->return_parent = node_copy->parent;
-          this->next = node_copy;
+          node->next = node_copy;
 
-          if (!this->next->return_left->is_null)
-            this->next->return_left->modify(version, 3, BLACK, this->next);
+          if (!node->next->return_left->is_null)
+            node->next->return_left->modify(version, 3, BLACK, node->next);
           
-          if (!this->next->return_right->is_null)
-            this->next->return_right->modify(version, 3, BLACK, this->next);
+          if (!node->next->return_right->is_null)
+            node->next->return_right->modify(version, 3, BLACK, node->next);
 
-          if(this->is_left_child(version)) 
-            this->next->return_parent->modify(version, 1, BLACK, this->next);
+          if(node->next->is_left_child(version)) 
+            node->next->return_parent->modify(version, 1, BLACK, node->next);
 
-          else if(this->is_right_child(version)) 
-            this->next->return_parent->modify(version, 2, BLACK, this->next);
+          else if(node->next->is_right_child(version)) 
+            node->next->return_parent->modify(version, 2, BLACK, node->next);
             
           return;
         }
         
-        Mod mod = this->create_mod(version, field_type, color, pointer);
-        this->mods.emplace_back(mod);
+        Mod mod = node->create_mod(version, field_type, color, pointer);
+        node->mods.emplace_back(mod);
       }
     } Node;
 
@@ -480,14 +480,14 @@ class RedBlackTree {
         bool operator == (Data d) { return node == d.node; }
         bool operator != (Data d) { return node != d.node; }
         Node* successor(Node* n, int version) {
-          if (!n->get_right(version)->is_node_null()) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
+          if (!n->get_right(version)->is_null) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
             n = n->get_right(version);
-            while(!n->get_left(version)->is_node_null())
+            while(!n->get_left(version)->is_null)
               n = n->get_left(version);
             return n;
           }
           else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-            while(((n->get_parent(version) != nullptr) && (n->get_parent(version)->get_left(version) != nullptr)) && (n->value != n->get_parent(version)->get_left(version)->value))
+            while((n->get_parent(version) != nullptr) && (n->value != n->get_parent(version)->get_left(version)->value))
               n = n->get_parent(version);
             return n->get_parent(version); // Caso n não tenha sucessor, irá retornar nullptr
           }
@@ -607,6 +607,7 @@ class RedBlackTree {
       }
 
       Data d(node);
+      this->print();
       return d;
     }
 
@@ -663,7 +664,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/2.txt");
+  ifstream file("./test/1.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
@@ -692,12 +693,13 @@ int main() {
         output_file << "SUC " << number << " " << version << endl << rbtree.get_successor(number, version) << endl;
       }
       else if(command == "IMP") {
-        int version;
-        iss >> version;
-        cout << "IMP " << version << endl;
-        output_file << "IMP " << version << endl;
+        // int version;
+        // iss >> version;
+        // cout << "IMP " << version << endl;
+        // output_file << "IMP " << version << endl;
 
-        rbtree.print_to_file(version, output_file);
+        // rbtree.print_to_file(version, output_file);
+        // rbtree.print();
       }
     }
 
