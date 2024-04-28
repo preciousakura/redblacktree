@@ -21,6 +21,8 @@ class RedBlackTree {
 
       bool is_null = true;
 
+      bool is_node_null() { return this == nullptr || (this != nullptr && this->is_null); }
+
       COLOR get_color(int version) {
         COLOR color = this->color;
         if(this->mods.empty()) return color; 
@@ -51,6 +53,7 @@ class RedBlackTree {
       }
 
       Node* get_left(int version) {
+        if(this == nullptr) return nullptr;
         Node* left = this->left;
         if(this->mods.empty()) return left; 
         if(this->mods.back().version > version) {
@@ -80,6 +83,7 @@ class RedBlackTree {
       }
 
       Node* get_right(int version) {
+        if(this == nullptr) return nullptr;
         Node* right = this->right;
         if(this->mods.empty()) return right; 
         if(this->mods.back().version > version) {
@@ -109,6 +113,7 @@ class RedBlackTree {
       }
 
       Node* get_parent(int version) {
+        if(this == nullptr) return nullptr;
         Node* parent = this->parent;
         if(this->mods.empty()) return parent; 
         if(this->mods.back().version > version) {
@@ -475,14 +480,14 @@ class RedBlackTree {
         bool operator == (Data d) { return node == d.node; }
         bool operator != (Data d) { return node != d.node; }
         Node* successor(Node* n, int version) {
-          if (!n->get_right(version)->is_null) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
+          if (!n->get_right(version)->is_node_null()) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
             n = n->get_right(version);
-            while(!n->get_left(version)->is_null)
+            while(!n->get_left(version)->is_node_null())
               n = n->get_left(version);
             return n;
           }
           else { // Caso n não tenha sub-árvore direita, o sucessor é o pai da sub-árvore cujo n é o máximo
-            while((n->get_parent(version) != nullptr) && (n->value != n->get_parent(version)->get_left(version)->value))
+            while(((n->get_parent(version) != nullptr) && (n->get_parent(version)->get_left(version) != nullptr)) && (n->value != n->get_parent(version)->get_left(version)->value))
               n = n->get_parent(version);
             return n->get_parent(version); // Caso n não tenha sucessor, irá retornar nullptr
           }
@@ -658,7 +663,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("in.txt");
+  ifstream file("./test/1.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
@@ -693,7 +698,6 @@ int main() {
         output_file << "IMP " << version << endl;
 
         rbtree.print_to_file(version, output_file);
-        rbtree.print(version);
       }
     }
 
