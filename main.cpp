@@ -88,7 +88,7 @@ class RedBlackTree {
               right = m.right;
           return right;
         }
-        else if(this->mods.back().version < version) {
+        else if(this->mods.back().version <= version) {
           if (this->next != nullptr)
             return this->next->get_right(version);
           for(Mod m: this->mods)
@@ -607,7 +607,6 @@ class RedBlackTree {
       }
 
       Data d(node);
-      this->print();
       return d;
     }
 
