@@ -30,7 +30,7 @@ class RedBlackTree {
               color = m.color;
           return color;
         }
-        else if(this->mods.back().version <= version) {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
             return this->next->get_color(version);
           for(Mod m: this->mods)
@@ -42,10 +42,8 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 0 && m.version <= version)
               color = m.color;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 0 && m.version <= version)
-                color = m.color;
+          if (this->next != nullptr)
+            return this->next->get_color(version);
           return color;
         }
       }
@@ -59,7 +57,7 @@ class RedBlackTree {
               left = m.left;
           return left;
         }
-        else if(this->mods.back().version <= version) {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
             return this->next->get_left(version);
           for(Mod m: this->mods)
@@ -71,10 +69,8 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 1 && m.version <= version)
               left = m.left;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 1 && m.version <= version)
-                left = m.left;       
+          if (this->next != nullptr)
+            return this->next->get_left(version);
           return left;
         }
       }
@@ -88,7 +84,7 @@ class RedBlackTree {
               right = m.right;
           return right;
         }
-        else if(this->mods.back().version <= version) {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
             return this->next->get_right(version);
           for(Mod m: this->mods)
@@ -100,10 +96,8 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 2 && m.version <= version)
               right = m.right;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 2 && m.version <= version)
-                right = m.right;
+          if (this->next != nullptr)
+            return this->next->get_right(version);
           return right;
         }
       }
@@ -117,7 +111,7 @@ class RedBlackTree {
               parent = m.parent;
           return parent;
         }
-        else if(this->mods.back().version <= version) {
+        else if(this->mods.back().version < version) {
           if (this->next != nullptr)
             return this->next->get_parent(version);
           for(Mod m: this->mods)
@@ -129,10 +123,8 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 3 && m.version <= version)
                 parent = m.parent;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 3 && m.version <= version)
-                parent = m.parent;
+          if (this->next != nullptr)
+            return this->next->get_parent(version);
           return parent;
         }
       }
@@ -303,9 +295,13 @@ class RedBlackTree {
       else
        cout << "left child: " << "null" << ' ';
       if(!node->get_right(version)->is_null)
-       cout << "right child: " << node->get_right(version)->value << endl;
+       cout << "right child: " << node->get_right(version)->value << ' ';
       else
-       cout << "right child: " << "null" << endl;
+       cout << "right child: " << "null" << ' ';
+      if(node->get_parent(version) != nullptr)
+       cout << "parent child: " << node->get_parent(version)->value << endl;
+      else
+       cout << "parent child: " << "null" << endl;
       
       print_helper(node->get_left(version), version);
       print_helper(node->get_right(version), version);
@@ -317,7 +313,7 @@ class RedBlackTree {
 
       if(!aux->get_right(version)->is_null) 
         aux->get_right(version)->modify(version, 3, BLACK, node);
-      aux->modify(version, 3, BLACK, node->get_parent(version));
+      aux->modify(version, 3, BLACK, node->get_parent(version)); // aqui
 
       if(node->get_parent(version) == nullptr) 
         create_root(aux, this->current_version);
@@ -699,6 +695,8 @@ int main() {
 
         rbtree.print_to_file(version, output_file);
       }
+
+      rbtree.print();
     }
 
     file.close();
