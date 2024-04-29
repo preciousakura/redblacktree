@@ -30,7 +30,7 @@ class RedBlackTree {
               color = m.color;
           return color;
         }
-        else if(this->mods.back().version < version) {
+        else if(this->mods.back().version <= version) {
           if (this->next != nullptr)
             return this->next->get_color(version);
           for(Mod m: this->mods)
@@ -59,7 +59,7 @@ class RedBlackTree {
               left = m.left;
           return left;
         }
-        else if(this->mods.back().version < version) {
+        else if(this->mods.back().version <= version) {
           if (this->next != nullptr)
             return this->next->get_left(version);
           for(Mod m: this->mods)
@@ -259,7 +259,7 @@ class RedBlackTree {
             node->next->return_left->modify(version, 3, BLACK, node->next);
           
           if (!node->next->return_right->is_null)
-            node->next->return_right->modify(version, 3, BLACK, node->next);
+            node->next->return_right->modify(version, 3, BLACK, node->next); // aqui o erro
 
           if(node->next->is_left_child(version)) 
             node->next->return_parent->modify(version, 1, BLACK, node->next);
@@ -664,7 +664,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/1.txt");
+  ifstream file("./test/3.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
@@ -693,13 +693,12 @@ int main() {
         output_file << "SUC " << number << " " << version << endl << rbtree.get_successor(number, version) << endl;
       }
       else if(command == "IMP") {
-        // int version;
-        // iss >> version;
-        // cout << "IMP " << version << endl;
-        // output_file << "IMP " << version << endl;
+        int version;
+        iss >> version;
+        cout << "IMP " << version << endl;
+        output_file << "IMP " << version << endl;
 
-        // rbtree.print_to_file(version, output_file);
-        // rbtree.print();
+        rbtree.print_to_file(version, output_file);
       }
     }
 
