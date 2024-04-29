@@ -117,7 +117,7 @@ class RedBlackTree {
               parent = m.parent;
           return parent;
         }
-        else if(this->mods.back().version < version) {
+        else if(this->mods.back().version <= version) {
           if (this->next != nullptr)
             return this->next->get_parent(version);
           for(Mod m: this->mods)
@@ -663,7 +663,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/3.txt");
+  ifstream file("./test/1.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
