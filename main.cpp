@@ -43,8 +43,10 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 0 && m.version <= version)
               color = m.color;
-          if (this->next != nullptr)
-            return this->next->get_color(version);
+          if(this->next != nullptr)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 0 && m.version <= version)
+                color = m.color;
           return color;
         }
       }
@@ -71,8 +73,10 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 1 && m.version <= version)
               left = m.left;
-          if (this->next != nullptr)
-            return this->next->get_left(version);
+          if(this->next != nullptr)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 1 && m.version <= version)
+                left = m.left;       
           return left;
         }
       }
@@ -99,8 +103,10 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 2 && m.version <= version)
               right = m.right;
-          if (this->next != nullptr)
-            return this->next->get_right(version);
+          if(this->next != nullptr)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 2 && m.version <= version)
+                right = m.right;
           return right;
         }
       }
@@ -127,12 +133,124 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 3 && m.version <= version)
                 parent = m.parent;
-          if (this->next != nullptr)
-            return this->next->get_parent(version);
+          if(this->next != nullptr)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 3 && m.version <= version)
+                parent = m.parent;
           return parent;
         }
       }
+      // COLOR get_color(int version) {
+      //   if(this == nullptr) return BLACK; 
+      //   COLOR color = this->color;
+      //   if(this->mods.empty()) return color; 
+      //   if(this->mods.back().version > version) {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 0 && m.version <= version)
+      //         color = m.color;
+      //     return color;
+      //   }
+      //   else if(this->mods.back().version < version) {
+      //     if (this->next != nullptr)
+      //       return this->next->get_color(version);
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 0)
+      //         color = m.color;
+      //     return color;
+      //   }
+      //   else {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 0 && m.version <= version)
+      //         color = m.color;
+      //     if (this->next != nullptr)
+      //       return this->next->get_color(version);
+      //     return color;
+      //   }
+      // }
 
+      // Node* get_left(int version) {
+      //   if(this == nullptr) return nullptr; 
+      //   Node* left = this->left;
+      //   if(this->mods.empty()) return left; 
+      //   if(this->mods.back().version > version) {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 1 && m.version <= version)
+      //         left = m.left;
+      //     return left;
+      //   }
+      //   else if(this->mods.back().version < version) {
+      //     if (this->next != nullptr)
+      //       return this->next->get_left(version);
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 1)
+      //         left = m.left;
+      //     return left;
+      //   }
+      //   else {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 1 && m.version <= version)
+      //         left = m.left;
+      //     if (this->next != nullptr)
+      //       return this->next->get_left(version);
+      //     return left;
+      //   }
+      // }
+
+      // Node* get_right(int version) {
+      //   if(this == nullptr) return nullptr; 
+      //   Node* right = this->right;
+      //   if(this->mods.empty()) return right; 
+      //   if(this->mods.back().version > version) {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 2 && m.version <= version)
+      //         right = m.right;
+      //     return right;
+      //   }
+      //   else if(this->mods.back().version < version) {
+      //     if (this->next != nullptr)
+      //       return this->next->get_right(version);
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 2)
+      //         right = m.right;
+      //     return right;
+      //   }
+      //   else {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 2 && m.version <= version)
+      //         right = m.right;
+      //     if (this->next != nullptr)
+      //       return this->next->get_right(version);
+      //     return right;
+      //   }
+      // }
+
+      // Node* get_parent(int version) {
+      //   if(this == nullptr) return nullptr; 
+      //   Node* parent = this->parent;
+      //   if(this->mods.empty()) return parent; 
+      //   if(this->mods.back().version > version) {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 3 && m.version <= version)
+      //         parent = m.parent;
+      //     return parent;
+      //   }
+      //   else if(this->mods.back().version < version) {
+      //     if (this->next != nullptr)
+      //       return this->next->get_parent(version);
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 3)
+      //         parent = m.parent;
+      //     return parent;
+      //   }
+      //   else {
+      //     for(Mod m: this->mods)
+      //       if (m.type_field == 3 && m.version <= version)
+      //           parent = m.parent;
+      //     if (this->next != nullptr)
+      //       return this->next->get_parent(version);
+      //     return parent;
+      //   }
+      // }
       Node* get_grandparent(int version) { 
         if(this->get_parent(version) == nullptr || this->get_parent(version)->get_parent(version) == nullptr) return nullptr;
         return this->get_parent(version)->get_parent(version);
@@ -672,7 +790,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/1.txt");
+  ifstream file("./test/4.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
@@ -713,6 +831,6 @@ int main() {
     file.close();
     output_file.close();
   }
-
+  rbtree.print();
   return 0;
 }
