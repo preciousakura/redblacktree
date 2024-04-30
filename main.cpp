@@ -22,6 +22,7 @@ class RedBlackTree {
       bool is_null = true;
 
       COLOR get_color(int version) {
+        if(this == nullptr) return BLACK; 
         COLOR color = this->color;
         if(this->mods.empty()) return color; 
         if(this->mods.back().version > version) {
@@ -49,6 +50,7 @@ class RedBlackTree {
       }
 
       Node* get_left(int version) {
+        if(this == nullptr) return nullptr; 
         Node* left = this->left;
         if(this->mods.empty()) return left; 
         if(this->mods.back().version > version) {
@@ -76,6 +78,7 @@ class RedBlackTree {
       }
 
       Node* get_right(int version) {
+        if(this == nullptr) return nullptr; 
         Node* right = this->right;
         if(this->mods.empty()) return right; 
         if(this->mods.back().version > version) {
@@ -103,6 +106,7 @@ class RedBlackTree {
       }
 
       Node* get_parent(int version) {
+        if(this == nullptr) return nullptr; 
         Node* parent = this->parent;
         if(this->mods.empty()) return parent; 
         if(this->mods.back().version > version) {
@@ -247,17 +251,25 @@ class RedBlackTree {
           node_copy->return_parent = node_copy->parent;
           node->next = node_copy;
 
-          if (!node->next->return_left->is_null)
-            node->next->return_left->modify(version, 3, BLACK, node->next);
+          if (!node->next->return_left->is_null) {
+            if(node->next->return_left == node->next)
+              node->next->return_left->modify(version, 3, BLACK, node->next);
+          }
           
-          if (!node->next->return_right->is_null)
-            node->next->return_right->modify(version, 3, BLACK, node->next); // aqui o erro
+          if (!node->next->return_right->is_null) {
+            if(node->next->return_right == node->next)
+              node->next->return_right->modify(version, 3, BLACK, node->next); // aqui o erro
+          }
 
-          if(node->next->is_left_child(version)) 
-            node->next->return_parent->modify(version, 1, BLACK, node->next);
+          if(node->next->return_parent != nullptr) {
+            if(!node->next->return_parent->get_left(version)->value == node->next->value)
+              node->next->return_parent->modify(version, 1, BLACK, node->next);
+          }
 
-          else if(node->next->is_right_child(version)) 
-            node->next->return_parent->modify(version, 2, BLACK, node->next);
+          if(node->next->return_parent != nullptr) {
+            if(!node->next->return_parent->get_right(version)->value == node->next->value)
+              node->next->return_parent->modify(version, 2, BLACK, node->next);
+          }
             
           return;
         }
@@ -476,6 +488,7 @@ class RedBlackTree {
         bool operator == (Data d) { return node == d.node; }
         bool operator != (Data d) { return node != d.node; }
         Node* successor(Node* n, int version) {
+          if(n == nullptr) return nullptr;
           if (!n->get_right(version)->is_null) { // Caso n tenha sub-árvore direita, o sucessor é o mínimo dessa árvore
             n = n->get_right(version);
             while(!n->get_left(version)->is_null)
@@ -622,8 +635,8 @@ class RedBlackTree {
 
     void remove(int value) {
       Data d = search(value, this->current_version);
-
       Node* node = d.node;
+      if(d.node == nullptr) return;
       COLOR original_color = node->color; 
       Node* aux;
 
@@ -695,8 +708,6 @@ int main() {
 
         rbtree.print_to_file(version, output_file);
       }
-
-      rbtree.print();
     }
 
     file.close();
