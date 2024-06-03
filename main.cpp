@@ -43,10 +43,8 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 0 && m.version <= version)
               color = m.color;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 0 && m.version <= version)
-                color = m.color;
+          if (this->next != nullptr)
+            return this->next->get_color(version);
           return color;
         }
       }
@@ -55,6 +53,16 @@ class RedBlackTree {
         if(this == nullptr) return nullptr; 
         Node* left = this->left;
         if(this->mods.empty()) return left; 
+
+        if(this->next != nullptr) {
+          if(this->next->mods.size() > 0 && this->next->mods.front().version > version) {
+            for(Mod m: this->mods)
+              if (m.type_field == 1 && m.version <= version)
+                left = m.left;
+            return left;
+          }
+        }
+
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 1 && m.version <= version)
@@ -73,10 +81,8 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 1 && m.version <= version)
               left = m.left;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 1 && m.version <= version)
-                left = m.left;       
+          if (this->next != nullptr)
+            return this->next->get_left(version);
           return left;
         }
       }
@@ -85,6 +91,16 @@ class RedBlackTree {
         if(this == nullptr) return nullptr; 
         Node* right = this->right;
         if(this->mods.empty()) return right; 
+
+        if(this->next != nullptr) {
+          if(this->next->mods.size() > 0 && this->next->mods.front().version > version) {
+            for(Mod m: this->mods)
+              if (m.type_field == 2 && m.version <= version)
+                right = m.right;
+            return right;
+          }
+        }
+
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 2 && m.version <= version)
@@ -115,6 +131,16 @@ class RedBlackTree {
         if(this == nullptr) return nullptr; 
         Node* parent = this->parent;
         if(this->mods.empty()) return parent; 
+
+        if(this->next != nullptr) {
+          if((this->next->mods.size() > 0 && this->next->mods.front().version > version)) {
+            for(Mod m: this->mods)
+              if (m.type_field == 3 && m.version <= version)
+                parent = m.parent;
+            return parent;
+          }
+        }
+
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 3 && m.version <= version)
@@ -133,124 +159,12 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 3 && m.version <= version)
                 parent = m.parent;
-          if(this->next != nullptr)
-            for(Mod m: this->next->mods)
-              if (m.type_field == 3 && m.version <= version)
-                parent = m.parent;
+          if (this->next != nullptr)
+            return this->next->get_parent(version);
           return parent;
         }
       }
-      // COLOR get_color(int version) {
-      //   if(this == nullptr) return BLACK; 
-      //   COLOR color = this->color;
-      //   if(this->mods.empty()) return color; 
-      //   if(this->mods.back().version > version) {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 0 && m.version <= version)
-      //         color = m.color;
-      //     return color;
-      //   }
-      //   else if(this->mods.back().version < version) {
-      //     if (this->next != nullptr)
-      //       return this->next->get_color(version);
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 0)
-      //         color = m.color;
-      //     return color;
-      //   }
-      //   else {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 0 && m.version <= version)
-      //         color = m.color;
-      //     if (this->next != nullptr)
-      //       return this->next->get_color(version);
-      //     return color;
-      //   }
-      // }
 
-      // Node* get_left(int version) {
-      //   if(this == nullptr) return nullptr; 
-      //   Node* left = this->left;
-      //   if(this->mods.empty()) return left; 
-      //   if(this->mods.back().version > version) {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 1 && m.version <= version)
-      //         left = m.left;
-      //     return left;
-      //   }
-      //   else if(this->mods.back().version < version) {
-      //     if (this->next != nullptr)
-      //       return this->next->get_left(version);
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 1)
-      //         left = m.left;
-      //     return left;
-      //   }
-      //   else {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 1 && m.version <= version)
-      //         left = m.left;
-      //     if (this->next != nullptr)
-      //       return this->next->get_left(version);
-      //     return left;
-      //   }
-      // }
-
-      // Node* get_right(int version) {
-      //   if(this == nullptr) return nullptr; 
-      //   Node* right = this->right;
-      //   if(this->mods.empty()) return right; 
-      //   if(this->mods.back().version > version) {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 2 && m.version <= version)
-      //         right = m.right;
-      //     return right;
-      //   }
-      //   else if(this->mods.back().version < version) {
-      //     if (this->next != nullptr)
-      //       return this->next->get_right(version);
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 2)
-      //         right = m.right;
-      //     return right;
-      //   }
-      //   else {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 2 && m.version <= version)
-      //         right = m.right;
-      //     if (this->next != nullptr)
-      //       return this->next->get_right(version);
-      //     return right;
-      //   }
-      // }
-
-      // Node* get_parent(int version) {
-      //   if(this == nullptr) return nullptr; 
-      //   Node* parent = this->parent;
-      //   if(this->mods.empty()) return parent; 
-      //   if(this->mods.back().version > version) {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 3 && m.version <= version)
-      //         parent = m.parent;
-      //     return parent;
-      //   }
-      //   else if(this->mods.back().version < version) {
-      //     if (this->next != nullptr)
-      //       return this->next->get_parent(version);
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 3)
-      //         parent = m.parent;
-      //     return parent;
-      //   }
-      //   else {
-      //     for(Mod m: this->mods)
-      //       if (m.type_field == 3 && m.version <= version)
-      //           parent = m.parent;
-      //     if (this->next != nullptr)
-      //       return this->next->get_parent(version);
-      //     return parent;
-      //   }
-      // }
       Node* get_grandparent(int version) { 
         if(this->get_parent(version) == nullptr || this->get_parent(version)->get_parent(version) == nullptr) return nullptr;
         return this->get_parent(version)->get_parent(version);
@@ -352,15 +266,19 @@ class RedBlackTree {
           switch (field_type) {
             case 0:
               node_copy->color = color;
+              node_copy->modify(version, 0, color, node);
               break;
             case 1:
               node_copy->left = pointer;
+              node_copy->modify(version, 1, BLACK, pointer);
               break;
             case 2:
               node_copy->right = pointer;
+              node_copy->modify(version, 2, BLACK, pointer);
               break;
             case 3:
               node_copy->parent = pointer;
+              node_copy->modify(version, 3, BLACK, pointer);
               break;
           }
 
@@ -653,8 +571,7 @@ class RedBlackTree {
         depth++;
       }
       
-      bool has_succ = true;
-      while(has_succ) {
+      while(true) {
         char c;
         if(node->get_color(version)) c = 'R';
         else c = 'B';
@@ -675,8 +592,7 @@ class RedBlackTree {
           }  
           node = node->get_parent(version);
           depth--;
-          if (node == nullptr)
-            has_succ = false;
+          if (node == nullptr) break;
         }
       }
     }
@@ -790,7 +706,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/4.txt");
+  ifstream file("./test/2.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
@@ -825,12 +741,13 @@ int main() {
         output_file << "IMP " << version << endl;
 
         rbtree.print_to_file(version, output_file);
+        output_file << endl;
       }
     }
 
     file.close();
     output_file.close();
   }
-  rbtree.print();
+
   return 0;
 }
