@@ -25,6 +25,16 @@ class RedBlackTree {
         if(this == nullptr) return BLACK; 
         COLOR color = this->color;
         if(this->mods.empty()) return color; 
+
+        if(this->next != nullptr) {
+          if(this->next->mods.size() > 0 && this->next->mods.front().version > version) {
+            for(Mod m: this->mods)
+              if (m.type_field == 0 && m.version <= version)
+                color = m.color;
+            return color;
+          }
+        }
+
         if(this->mods.back().version > version) {
           for(Mod m: this->mods)
             if (m.type_field == 0 && m.version <= version)
@@ -706,7 +716,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/2.txt");
+  ifstream file("./test/1.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
