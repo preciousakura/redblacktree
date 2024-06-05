@@ -32,7 +32,7 @@ class RedBlackTree {
           return color;
         }
         else if(this->mods.back().version < version) {
-          if (this->next != nullptr)
+          if (this->next != nullptr && !this->next->is_null)
             return this->next->get_color(version);
           for(Mod m: this->mods)
             if (m.type_field == 0)
@@ -43,8 +43,10 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 0 && m.version <= version)
               color = m.color;
-          if (this->next != nullptr)
-            return this->next->get_color(version);
+          if(this->next != nullptr && !this->next->is_null)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 0 && m.version <= version)
+                color = m.color;
           return color;
         }
       }
@@ -60,7 +62,7 @@ class RedBlackTree {
           return left;
         }
         else if(this->mods.back().version < version) {
-          if (this->next != nullptr)
+          if (this->next != nullptr && !this->next->is_null)
             return this->next->get_left(version);
           for(Mod m: this->mods)
             if (m.type_field == 1)
@@ -71,8 +73,10 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 1 && m.version <= version)
               left = m.left;
-          if (this->next != nullptr)
-            return this->next->get_left(version);
+          if(this->next != nullptr && !this->next->is_null)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 1 && m.version <= version)
+                left = m.left;       
           return left;
         }
       }
@@ -88,7 +92,7 @@ class RedBlackTree {
           return right;
         }
         else if(this->mods.back().version < version) {
-          if (this->next != nullptr)
+          if (this->next != nullptr && !this->next->is_null)
             return this->next->get_right(version);
           for(Mod m: this->mods)
             if (m.type_field == 2)
@@ -99,7 +103,7 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 2 && m.version <= version)
               right = m.right;
-          if(this->next != nullptr)
+          if(this->next != nullptr && !this->next->is_null)
             for(Mod m: this->next->mods)
               if (m.type_field == 2 && m.version <= version)
                 right = m.right;
@@ -118,7 +122,7 @@ class RedBlackTree {
           return parent;
         }
         else if(this->mods.back().version < version) {
-          if (this->next != nullptr)
+          if (this->next != nullptr && !this->next->is_null)
             return this->next->get_parent(version);
           for(Mod m: this->mods)
             if (m.type_field == 3)
@@ -129,8 +133,10 @@ class RedBlackTree {
           for(Mod m: this->mods)
             if (m.type_field == 3 && m.version <= version)
                 parent = m.parent;
-          if (this->next != nullptr)
-            return this->next->get_parent(version);
+          if(this->next != nullptr && !this->next->is_null)
+            for(Mod m: this->next->mods)
+              if (m.type_field == 3 && m.version <= version)
+                parent = m.parent;
           return parent;
         }
       }
@@ -207,7 +213,7 @@ class RedBlackTree {
         if(this == nullptr || this->is_null) return;
         Node* node = this;
 
-        while(node->next !=  nullptr)
+        while(node->next !=  nullptr && !node->next->is_null)
           node = node->next;
 
         int size = node->mods.size();
