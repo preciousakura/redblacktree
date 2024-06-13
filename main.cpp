@@ -8,7 +8,7 @@
 
 using namespace std;
 
-enum COLOR { BLACK, RED };
+enum COLOR { BLACK, RED, GRAY };
 
 class RedBlackTree {
   private:
@@ -25,7 +25,7 @@ class RedBlackTree {
         if(this == nullptr) return color; 
         if(this->is_null) return color;
 
-        color = this->color;
+        color = color == GRAY ? this->color : color;
 
         if(this->mods.empty()) return color;
 
@@ -197,12 +197,12 @@ class RedBlackTree {
           node->next = node_copy;
 
           if(node_copy->return_left != nullptr && !node_copy->return_left->is_null) {
-            if(node_copy->return_left->get_parent(version, nullptr)->value == node_copy->value)
+            if(node_copy->return_left->get_parent(version, nullptr) == node)
               node_copy->return_left->modify(version, 3, BLACK, node_copy);
           }
 
           if(node_copy->return_right != nullptr && !node_copy->return_right->is_null) {
-            if(node_copy->return_right->get_parent(version, nullptr)->value == node_copy->value)
+            if(node_copy->return_right->get_parent(version, nullptr) == node)
               node_copy->return_right->modify(version, 3, BLACK, node_copy);
           }
 
@@ -246,7 +246,7 @@ class RedBlackTree {
     void print_helper(Node* node, int version) {
       if(node->is_null) return;
 
-      cout << "value: " << node->value << " color: " << node->get_color(version, BLACK) << ' ';
+      cout << "value: " << node->value << " color: " << node->get_color(version, GRAY) << ' ';
       if(!node->get_left(version, nullptr)->is_null)
        cout << "left child: " << node->get_left(version, nullptr)->value << ' ';
       else
@@ -304,14 +304,14 @@ class RedBlackTree {
 
     void insert_fix(Node* node, int version) {
       if(node == nullptr) return;
-      if(node->get_parent(version, nullptr) != nullptr && node->get_parent(version, nullptr)->get_color(version, BLACK) == COLOR::BLACK) return;
+      if(node->get_parent(version, nullptr) != nullptr && node->get_parent(version, nullptr)->get_color(version, GRAY) == COLOR::BLACK) return;
 
-      if(node->get_parent(version, nullptr) == nullptr && node->get_color(version, BLACK) == COLOR::RED) {
+      if(node->get_parent(version, nullptr) == nullptr && node->get_color(version, GRAY) == COLOR::RED) {
         node->modify(version, 0, BLACK, node);
         return;
       }
 
-      if(!node->get_uncle(version)->is_null && node->get_uncle(version)->get_color(version, BLACK) == COLOR::RED) {
+      if(!node->get_uncle(version)->is_null && node->get_uncle(version)->get_color(version, GRAY) == COLOR::RED) {
         node->get_uncle(version)->modify(version, 0, BLACK, node->get_uncle(version));
         node->get_parent(version, nullptr)->modify(version, 0, BLACK, node->get_parent(version, nullptr));
         node->get_grandparent(version)->modify(version, 0, RED, node->get_grandparent(version));
@@ -362,28 +362,28 @@ class RedBlackTree {
     }
 
     void remove_fix(Node* node, int version) {
-      while(node->get_parent(version, nullptr) != nullptr && node->get_color(version, BLACK) == BLACK) {
+      while(node->get_parent(version, nullptr) != nullptr && node->get_color(version, GRAY) == BLACK) {
         if(node->is_left_child(version)) {
           Node* right_child = node->get_parent(version, nullptr)->get_right(version, nullptr);
-          if(right_child->get_color(version, BLACK) == RED) {
+          if(right_child->get_color(version, GRAY) == RED) {
             right_child->modify(this->current_version, 0, BLACK, nullptr);
             node->get_parent(version, nullptr)->modify(this->current_version, 0, RED, nullptr);
             left_rotate(node->get_parent(version, nullptr), version);
             right_child = node->get_parent(version, nullptr)->get_right(version, nullptr);
           }
-          if(right_child->get_left(version, nullptr)->get_color(version, BLACK) == BLACK && right_child->get_right(version, nullptr)->get_color(version, BLACK) == BLACK) {
+          if(right_child->get_left(version, nullptr)->get_color(version, GRAY) == BLACK && right_child->get_right(version, nullptr)->get_color(version, GRAY) == BLACK) {
             right_child->modify(this->current_version, 0, RED, nullptr);
             node = node->get_parent(version, nullptr); //get_parent
           }
           else {
-            if(right_child->get_right(version, nullptr)->get_color(version, BLACK) == BLACK) {
+            if(right_child->get_right(version, nullptr)->get_color(version, GRAY) == BLACK) {
               right_child->get_left(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
               right_child->modify(this->current_version, 0, RED, nullptr);
               right_rotate(right_child, version);
               right_child = node->get_parent(version, nullptr)->get_right(version, nullptr);
             }
 
-            right_child->modify(this->current_version, 0, node->get_parent(version, nullptr)->get_color(version, BLACK), nullptr);
+            right_child->modify(this->current_version, 0, node->get_parent(version, nullptr)->get_color(version, GRAY), nullptr);
             node->get_parent(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             right_child->get_right(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             left_rotate(node->get_parent(version, nullptr), version);
@@ -391,25 +391,25 @@ class RedBlackTree {
           }
         } else {
           Node* left_child = node->get_parent(version, nullptr)->get_left(version, nullptr);
-          if(left_child->get_color(version, BLACK) == RED) {
+          if(left_child->get_color(version, GRAY) == RED) {
             left_child->modify(this->current_version, 0, BLACK, nullptr);
             node->get_parent(version, nullptr)->modify(this->current_version, 0, RED, nullptr);
             right_rotate(node->get_parent(version, nullptr), version);
             left_child = node->get_parent(version, nullptr)->get_left(version, nullptr);
           }
-          if(left_child->get_left(version, nullptr)->get_color(version, BLACK) == BLACK && left_child->get_right(version, nullptr)->get_color(version, BLACK) == BLACK) {
+          if(left_child->get_left(version, nullptr)->get_color(version, GRAY) == BLACK && left_child->get_right(version, nullptr)->get_color(version, GRAY) == BLACK) {
             left_child->modify(this->current_version, 0, RED, nullptr);
             node = node->get_parent(version, nullptr); //get_parent
           }
           else {
-            if(left_child->get_left(version, nullptr)->get_color(version, BLACK) == BLACK) {
+            if(left_child->get_left(version, nullptr)->get_color(version, GRAY) == BLACK) {
               left_child->get_right(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
               left_child->modify(this->current_version, 0, RED, nullptr);
               left_rotate(left_child, version);
               left_child = node->get_parent(version, nullptr)->get_left(version, nullptr); //get_parent()->get_left
             }
 
-            left_child->modify(this->current_version, 0, node->get_parent(version, nullptr)->get_color(version, BLACK), nullptr);
+            left_child->modify(this->current_version, 0, node->get_parent(version, nullptr)->get_color(version, GRAY), nullptr);
             node->get_parent(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             left_child->get_left(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             right_rotate(node->parent, version); //get_parent
@@ -481,7 +481,7 @@ class RedBlackTree {
       
       while(true) {
         char c;
-        if(node->get_color(version, BLACK)) c = 'R';
+        if(node->get_color(version, GRAY)) c = 'R';
         else c = 'B';
         file << node->value << ',' << depth << ',' << c << ' ';
         
@@ -591,7 +591,7 @@ class RedBlackTree {
         transplant(d.node, d.node->get_left(this->current_version, nullptr), this->current_version);
       } else {
         node = d.successor(d.node, this->current_version); 
-        original_color = node->get_color(this->current_version, BLACK);
+        original_color = node->get_color(this->current_version, GRAY);
         aux = node->get_right(this->current_version, nullptr);
 
         if(node->get_parent(this->current_version, nullptr)->value == d.node->value)
@@ -604,7 +604,7 @@ class RedBlackTree {
         transplant(d.node, node, this->current_version);   
         node->modify(this->current_version, 1, BLACK, d.node->get_left(this->current_version, nullptr));
         node->get_left(this->current_version, nullptr)->modify(this->current_version, 3, BLACK, node);
-        node->modify(this->current_version, 0, d.node->get_color(this->current_version, BLACK), nullptr);
+        node->modify(this->current_version, 0, d.node->get_color(this->current_version, GRAY), nullptr);
       }
       if(original_color == COLOR::BLACK) 
         remove_fix(aux, this->current_version);
