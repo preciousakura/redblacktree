@@ -134,7 +134,7 @@ class RedBlackTree {
       Node* return_right;
       Node* return_parent;
       
-      Node* next;
+      Node* next = nullptr;
 
       Mod create_mod(int version, int field, COLOR color, Node* pointer) {
         Mod mod = { this->left, this->right, this->parent, this->color, version, field };
