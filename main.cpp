@@ -41,7 +41,7 @@ class RedBlackTree {
 
       Node* get_left(int version, Node* left) {
         if(this == nullptr) return nullptr; 
-        if(this->is_null) return nullptr;
+        if(this->is_null) return this;
 
         left = left == nullptr ? this->left : left;
         
@@ -59,7 +59,7 @@ class RedBlackTree {
 
       Node* get_right(int version, Node* right) {
         if(this == nullptr) return nullptr; 
-        if(this->is_null) return nullptr;
+        if(this->is_null) return this;
 
         right = right == nullptr ? this->right : right;
 
@@ -77,7 +77,7 @@ class RedBlackTree {
 
       Node* get_parent(int version, Node* parent) {
         if(this == nullptr) return nullptr; 
-        if(this->is_null) return nullptr;
+        if(this->is_null) return this;
 
         parent = parent == nullptr ? this->parent : parent;
         
@@ -363,6 +363,7 @@ class RedBlackTree {
 
     void remove_fix(Node* node, int version) {
       while(node->get_parent(version, nullptr) != nullptr && node->get_color(version, GRAY) == BLACK) {
+        print();
         if(node->is_left_child(version)) {
           Node* right_child = node->get_parent(version, nullptr)->get_right(version, nullptr);
           if(right_child->get_color(version, GRAY) == RED) {
@@ -387,7 +388,7 @@ class RedBlackTree {
             node->get_parent(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             right_child->get_right(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             left_rotate(node->get_parent(version, nullptr), version);
-            node = root; // ????
+            node = get_root(this->current_version); // ????
           }
         } else {
           Node* left_child = node->get_parent(version, nullptr)->get_left(version, nullptr);
@@ -413,7 +414,7 @@ class RedBlackTree {
             node->get_parent(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             left_child->get_left(version, nullptr)->modify(this->current_version, 0, BLACK, nullptr);
             right_rotate(node->parent, version); //get_parent
-            node = root;
+            node = get_root(this->current_version);
           }
         }
       }
@@ -613,7 +614,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/1.txt");
+  ifstream file("./test/4.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
