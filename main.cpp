@@ -363,7 +363,6 @@ class RedBlackTree {
 
     void remove_fix(Node* node, int version) {
       while(node->get_parent(version, nullptr) != nullptr && node->get_color(version, GRAY) == BLACK) {
-        print();
         if(node->is_left_child(version)) {
           Node* right_child = node->get_parent(version, nullptr)->get_right(version, nullptr);
           if(right_child->get_color(version, GRAY) == RED) {
@@ -614,7 +613,7 @@ class RedBlackTree {
 
 int main() {
   RedBlackTree rbtree; 
-  ifstream file("./test/4.txt");
+  ifstream file("./test/2.txt");
   ofstream output_file("out.txt");
 
   if (file.is_open() && output_file.is_open()) {    
