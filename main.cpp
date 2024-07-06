@@ -569,7 +569,6 @@ class RedBlackTree {
     int get_successor(int value, int version) {
       Data d = search(value, version);
       Node* node = d.successor(d.node, version);
-      version = this->current_version < version ? this->current_version : version;
       if(node == nullptr) return INFINITY;
       return node->value;
     }
