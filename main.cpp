@@ -566,11 +566,33 @@ class RedBlackTree {
       return d;
     }
 
+    Node* search_successor(Node* node, int value, int version) {
+      if(node == nullptr) return node;
+      if(node->is_null) return node;
+
+      if(node->value > value) {
+        Node* left = node->get_left(version, nullptr);
+        if(!left->is_null) return search_successor(left, value, version);
+      }
+      if(node->value < value) {
+        Node* right = node->get_right(version, nullptr);
+        if(!right->is_null) return search_successor(right, value, version);
+      }
+      if(node->value == value) {
+        Data d(node);
+        return d.successor(node, version);
+      }
+      
+      if(node->value < value) return node->get_parent(version, nullptr);
+      return node;
+    }
+
     int get_successor(int value, int version) {
-      Data d = search(value, version);
-      Node* node = d.successor(d.node, version);
+      Node* node = search_successor(get_root(version), value, version);
       if(node == nullptr) return INFINITY;
-      return node->value;
+      if(node->is_null) return INFINITY;
+      if(node->value > value) return node->value;
+      return INFINITY;
     }
 
     void remove(int value) {
